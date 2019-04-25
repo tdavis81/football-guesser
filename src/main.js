@@ -1,13 +1,47 @@
-import Vue from 'vue'
-import App from './App.vue'
-import router from './router'
-import store from './store'
-import './registerServiceWorker'
+// Import Onsenui CSS
+import 'onsenui/css/onsenui.css';
+import 'onsenui/css/onsen-css-components.css';
 
+import Vue from 'vue'
+//import App from './App.vue'
+import router from './router'
+import storeLike from './store.js';
+import './registerServiceWorker'
+//import firebase from 'firebase'
+import VueOnsen from 'vue-onsenui';
+import CustomToolbar from './partials/CustomToolbar.vue';
+import Vuex from 'vuex';
+import AppNavigator from './AppNavigator.vue';
+
+Vue.use(VueOnsen);
+Vue.use(Vuex);
+/*
+const config = {
+  apiKey: "AIzaSyA7iDaCYCAt3bswTe3LIlYhL1TDG-2q03A",
+  authDomain: "fanastyfootball-aaebb.firebaseapp.com",
+  databaseURL: "https://fanastyfootball-aaebb.firebaseio.com",
+  projectId: "fanastyfootball-aaebb",
+  storageBucket: "",
+  messagingSenderId: "20047890542"
+};
+
+firebase.initializeApp(config)
+*/
+Vue.component('custom-toolbar', CustomToolbar);
 Vue.config.productionTip = false
 
 new Vue({
   router,
-  store,
-  render: h => h(App)
+  store: new Vuex.Store(storeLike),
+  beforeCreate() {
+    // Shortcut for Material Design
+    Vue.prototype.md = this.$ons.platform.isAndroid();
+
+    // Set iPhoneX flag based on URL
+    if (window.location.search.match(/iphonex/i)) {
+      document.documentElement.setAttribute('onsflag-iphonex-portrait', '');
+      document.documentElement.setAttribute('onsflag-iphonex-landscape', '');
+    }
+  },
+  render: h => h(AppNavigator),
 }).$mount('#app')
