@@ -1,5 +1,7 @@
 <template>
   <v-ons-page>
+
+    <!-- Login Modal -->
     <v-ons-modal :visible="modalVisible">
       <div class="login" style="margin-top:5%">
         <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
@@ -22,6 +24,7 @@
       </div>
       </div>
     </v-ons-modal>
+    
     <v-ons-list>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <table class="table table-striped table-dark">

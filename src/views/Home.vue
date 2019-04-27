@@ -64,6 +64,8 @@
 </template>
 
 <script>
+// Set a way to lock 1day or hours before start of game
+
 import db from '@/db';
 const APIKey = 'aece277790af4bbdaec038cb6d0ad4d5';
 const URL = 'https://api.sportsdata.io';
@@ -91,6 +93,7 @@ export default {
           this.psuSchedule.push(this.apiResponse[i])
         } 
       }
+      this.$store.commit('psuSchedule/set', this.psuSchedule);
     },
     getCurrentWeek () {
       let currentWeek = new Date();
@@ -111,7 +114,8 @@ export default {
 
       // Set The Current Week EX : {1} - For Week 1
       this.currentGameWeek = this.gameOfWeek.Week;
-      
+      this.$store.commit('psuCurrentWeek/set', this.currentGameWeek);
+
       // Set The Opponents For User To Choose Winner
       this.opponents.push( 
         {
@@ -129,24 +133,17 @@ export default {
         alert("Cannot access future games")
         this.selectedWeek = this.gameOfWeek.Week
       } else if (this.selectedWeek < this.gameOfWeek.Week) {
-        /*
-        db.collection(`${this.currentSeasonYear}_Season`).get().then(querySnapshot =>{
-          querySnapshot.forEach((doc)=>{
-            if(doc.data().Week === this.selectedWeek) {
-              console.log(doc.data())
-            }
-          })
-        })
-        */
+        this.selectedWeek = this.gameOfWeek.Week
         alert("Cannot access past games")
       }
     },
-    saveScores () {
+    saveScores () {                                         /// Add Player Name Here
       db.collection(`${this.currentSeasonYear}_Season`).doc(`Week_${this.currentGameWeek}`).set({
         Week: this.currentGameWeek,
         Winner: this.selectedOpponent,
         HomeScore: parseInt(this.homeScore),
-        AwayScore: parseInt(this.awayScore)
+        AwayScore: parseInt(this.awayScore),
+        Player: "Tyler" // Get User Display Name from User signed in and store in here
       }).then(function() {
         alert('Picks have been saved.');
       })

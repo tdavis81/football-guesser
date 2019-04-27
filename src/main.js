@@ -3,15 +3,16 @@ import 'onsenui/css/onsenui.css';
 import 'onsenui/css/onsen-css-components.css';
 
 import Vue from 'vue'
-//import App from './App.vue'
 import router from './router'
 import storeLike from './store.js';
 import './registerServiceWorker'
-//import firebase from 'firebase'
 import VueOnsen from 'vue-onsenui';
 import CustomToolbar from './partials/CustomToolbar.vue';
 import Vuex from 'vuex';
 import AppNavigator from './AppNavigator.vue';
+
+//import App from './App.vue'
+//import firebase from 'firebase'
 
 Vue.use(VueOnsen);
 Vue.use(Vuex);

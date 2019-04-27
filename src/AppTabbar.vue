@@ -22,6 +22,7 @@
 
 <script>
 import Home from './views/Home.vue';
+import Live from './views/Live.vue';
 import Rankings from './views/Rankings.vue';
 import Profile from './views/Profile.vue';
 
@@ -48,6 +49,12 @@ export default {
           theme: red,
           style: this.md ? { maxWidth: '60px' } : {},
           top: -105 // Toolbar + Tabbar heights
+        },
+        {
+          label: 'Live',
+          icon: 'ion-play',
+          page: Live,
+          theme: red
         },
         {
           label: 'Rankings',

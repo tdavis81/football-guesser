@@ -45,12 +45,38 @@ export default {
         }
       }
     },
+    
+    psuCurrentWeek: {
+      strict: true,
+      namespaced: true,
+      state: {
+        currentGameWeek: ''
+      },
+      mutations: {
+        set(state, currentGameWeek) {
+          state.currentGameWeek = currentGameWeek;
+        }
+      }
+    },
+
+    psuSchedule: {
+      strict: true,
+      namespaced: true,
+      state: {
+        schedule: []
+      },
+      mutations: {
+        set(state, schedule) {
+          state.schedule = schedule;
+        }
+      }
+    },
 
     tabbar: {
       strict: true,
       namespaced: true,
       state: {
-        index: 1
+        index: 2
       },
       mutations: {
         set(state, index) {

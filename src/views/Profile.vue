@@ -60,7 +60,7 @@ export default {
       }).catch(function(error) {
         // An error happened.
       });
-      this.$store.commit('tabbar/set', 1);
+      this.$store.commit('tabbar/set', 2);
     },
   },
   

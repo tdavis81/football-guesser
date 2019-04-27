@@ -1,29 +1,5 @@
 <template>
   <div id="app">
-    <!--
-    <Slide style="margin-right:5px">
-      <a id="home" href="/home">
-        <span>
-          <i class="fas fa-home" style="color:green"></i> Home
-        </span>
-      </a>
-      <a id="ranking" href="/rankings">
-        <span>
-          <i class="fas fa-trophy" style="color:green"></i> Rankings
-        </span>
-      </a>
-      <a id="editProfile" href="/profile">
-        <span>
-          <i class="fas fa-user" style="color:green"></i> Profile
-        </span>
-      </a>
-       <a id="logout" href="/logout">
-        <span>
-         <i class="fas fa-sign-out-alt" style="color:green"></i> Logout
-        </span>
-      </a>
-    </Slide>
-    -->
     <router-view/>
   </div>
 </template> 
@@ -37,7 +13,6 @@ export default {
       
     },
     components: {
-      //Slide
     }
 }
 </script>
