@@ -43,6 +43,7 @@ new Vue({
       document.documentElement.setAttribute('onsflag-iphonex-portrait', '');
       document.documentElement.setAttribute('onsflag-iphonex-landscape', '');
     }
+
   },
   render: h => h(AppNavigator),
 }).$mount('#app')

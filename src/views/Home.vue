@@ -1,13 +1,35 @@
 <template>
   <v-ons-page>
+
+    <!-- Login Modal -->
+    <v-ons-modal :visible="modalVisible">
+      <div class="login" style="margin-top:5%">
+        <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
+                <input type="password" v-model="user.password" class="fadeIn third" placeholder="Password" required>
+                <div class="row" style="margin-top:10px">
+                    <div class="col-sm-6">
+                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Login" @click="checkUser()">
+                    </div>
+                    <div class="col-sm-6">
+                        <a href="#" style="color:white">Forgot your password?</a>
+                    </div>
+                </div>
+                <p v-if="showError" style="color:red">Incorrect username or password.</p>
+            </div>
+            <div class="col-md-4"></div>
+      </div>
+      </div>
+    </v-ons-modal>
+
+
     <v-ons-list>
       <ons-list-item>
         <div class="center">
-          <v-ons-select style="width: 100%;text-align:center" @change="checkAvialable()" v-model="selectedWeek">
-            <option v-for="(item,index) in psuSchedule" :value="item.Week" :key="index">
-              {{ item.AwayTeam }} at {{ item.HomeTeam }} - Week {{item.Week}}
-            </option>
-          </v-ons-select>
+          <label>{{currentGame.AwayTeam}} at {{currentGame.HomeTeam}} Week-{{currentGame.Week}}</label>
         </div>
       </ons-list-item>
 
@@ -16,9 +38,9 @@
           <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input id="homeScore" float maxlength="20"
-            placeholder="Home Score"
-            v-model="homeScore"
+          <v-ons-input id="psuScore" float maxlength="20"
+            placeholder="PENNST Score"
+            v-model="psuScore"
             type="number"
           >
           </v-ons-input>
@@ -30,9 +52,9 @@
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input id="awayScore" float maxlength="20"
-            placeholder="Away Score"
-            v-model="awayScore"
+          <v-ons-input id="opponentSCore" float maxlength="20"
+            placeholder="Opponent Score"
+            v-model="opponentScore"
             type="number"
           >
           </v-ons-input>
@@ -67,93 +89,64 @@
 // Set a way to lock 1day or hours before start of game
 
 import db from '@/db';
-const APIKey = 'aece277790af4bbdaec038cb6d0ad4d5';
-const URL = 'https://api.sportsdata.io';
+import firebase from 'firebase';
+import swal from 'sweetalert';
 
 export default {
   data () {
     return {
+      modalVisible: false,
+      showError: false,
+      user: {
+        email: '',
+        password: '',
+        displayName: ''
+      },
       opponents: [],
-      selectedWeek: '',
       selectedOpponent: 'PENNST',
-      homeScore: '',
-      awayScore: '',
-      apiResponse: [],
-      psuSchedule: [],
-      gameOfWeek: {},
-      currentGameWeek: '',
-      currentSeasonYear: '',
-      hasSubmitted:false
+      psuScore: '',
+      opponentScore: '',
+      hasSubmitted:false,
+      currentGame: this.$store.state.currentGameObject.gameObject
     };
   },
   methods: {
-    filterPennStateGames () {
-      for (var i=0; i < this.apiResponse.length; i++) {
-        if (this.apiResponse[i].HomeTeam === "PENNST" || this.apiResponse[i].AwayTeam === "PENNST") {
-          this.psuSchedule.push(this.apiResponse[i])
-        } 
-      }
-      this.$store.commit('psuSchedule/set', this.psuSchedule);
+    showModal() {
+      this.modalVisible = true;
     },
-    getCurrentWeek () {
-      let currentWeek = new Date();
-      const dd = currentWeek.getDate();
-      const mm = currentWeek.getMonth()+1; //As January is 0.
-      const yyyy = currentWeek.getFullYear();
-      currentWeek = `${yyyy}-${mm}-${dd}`; // Adding leading zero in and remove T00:00:00
-      currentWeek = "2019-09-17T00:00:00"; // Replace this time with formatted current Time of Day
-
-      // Find The Current Week Of The Year According to Present Day
-      for (var i =0; i < this.psuSchedule.length;i++) {
-        if(this.psuSchedule[i].Status === "Scheduled" && currentWeek <= this.psuSchedule[i].Day ) {
-          this.selectedWeek = this.psuSchedule[i].Week;
-          this.gameOfWeek = this.psuSchedule[i];
-          break;
-        }
-      }
-
-      // Set The Current Week EX : {1} - For Week 1
-      this.currentGameWeek = this.gameOfWeek.Week;
-      this.$store.commit('psuCurrentWeek/set', this.currentGameWeek);
-
-      // Set The Opponents For User To Choose Winner
-      this.opponents.push( 
-        {
-          text: this.gameOfWeek.HomeTeam,
-          value: this.gameOfWeek.HomeTeam
-        },
-        {
-          text: this.gameOfWeek.AwayTeam,
-          value: this.gameOfWeek.AwayTeam
-        }
-      )
+    checkUser() {
+        firebase.auth().signInWithEmailAndPassword(this.user.email,this.user.password).then(
+          () => {
+            this.showError = false
+            this.modalVisible = false;
+          },
+          () => {
+            this.showError = true
+            this.modalVisible = true;
+          }
+        )
     },
-    checkAvialable () {
-      if(this.selectedWeek > this.gameOfWeek.Week) {
-        alert("Cannot access future games")
-        this.selectedWeek = this.gameOfWeek.Week
-      } else if (this.selectedWeek < this.gameOfWeek.Week) {
-        this.selectedWeek = this.gameOfWeek.Week
-        alert("Cannot access past games")
-      }
-    },
-    saveScores () {                                         /// Add Player Name Here
-      db.collection(`${this.currentSeasonYear}_Season`).doc(`Week_${this.currentGameWeek}`).set({
-        Week: this.currentGameWeek,
+    
+    saveScores () {                                         
+      db.collection(`${this.$store.state.currentYear.currentYear}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
+        Week: this.currentGame.Week,
+        Season: this.$store.state.currentYear.currentYear,
         Winner: this.selectedOpponent,
-        HomeScore: parseInt(this.homeScore),
-        AwayScore: parseInt(this.awayScore),
-        Player: "Tyler" // Get User Display Name from User signed in and store in here
+        PsuScore: parseInt(this.psuScore),
+        OpponentScore: parseInt(this.opponentScore),
+        Player: this.user.displayName
       }).then(function() {
-        alert('Picks have been saved.');
+        swal("Saved","Picks have been saved!","success")
       })
       .catch(function(error) {
-        alert('I\'m sorry there was an issue with the server, your picks were not saved.')
+        swal("Not Saved","Server Error, Picks not saved. Try Again","error")
       });
 
-      // Set inputs to readonly
-      document.getElementById('homeScore').children.readOnly = true;
-      document.getElementById('awayScore').readOnly = true;
+      // Set inputs to readonly FIX
+      const psuScore = document.getElementById('psuScore');
+      psuScore.childNodes.item("child").readOnly = true;
+      const opponentScore = document.getElementById('opponentScore');
+      opponentScore.childNodes.item("child").readOnly = true;
 
       // Hide Save Button Once User Has Submitted There Picks
       this.hasSubmitted = true;
@@ -161,18 +154,30 @@ export default {
     }
   },
   created () {
-    this.currentSeasonYear = new Date().getFullYear();
-    // Create new Firebase collection for season if its not already created 
-
-    fetch(`${URL}/v3/cfb/scores/json/Games/${this.currentSeasonYear}?key=${APIKey}`)
-    .then((response) => {
-      return response.json();
-    })
-    .then((myJson) => {
-      this.apiResponse = myJson
-      this.filterPennStateGames();
-      this.getCurrentWeek();
+    
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        this.modalVisible = false
+        this.user.displayName = user.displayName
+        this.$store.commit('sessionUser/set', user);
+      } else {
+        this.user.email = '';
+        this.user.password = '';
+        this.modalVisible = true
+      }
     });
+
+    this.opponents.push( 
+      {
+        text: this.currentGame.HomeTeam,
+        value: this.currentGame.HomeTeam
+      },
+      {
+        text: this.currentGame.AwayTeam,
+        value: this.currentGame.AwayTeam
+      }
+    )
+
   }
   
 };

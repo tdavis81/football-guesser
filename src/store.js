@@ -72,11 +72,76 @@ export default {
       }
     },
 
+    sessionUser: {
+      strict: true,
+      namespaced: true,
+      state: {
+        user: ''
+      },
+      mutations: {
+        set(state, user) {
+          state.user = user;
+        }
+      }
+    },
+
+    liveScores: {
+      strict: true,
+      namespaced: true,
+      state: {
+        scoreObj: {}
+      },
+      mutations: {
+        set(state, scoreObj) {
+          state.scoreObj = scoreObj;
+        }
+      }
+    },
+
+    currentYear: {
+      strict: true,
+      namespaced: true,
+      state: {
+        currentYear: ''
+      },
+      mutations: {
+        set(state, currentYear) {
+          state.currentYear = currentYear;
+        }
+      }
+    },
+
+    currentWeekNumber: {
+      strict: true,
+      namespaced: true,
+      state: {
+        weekNumber: []
+      },
+      mutations: {
+        set(state, weekNumber) {
+          state.weekNumber = weekNumber;
+        }
+      }
+    },
+
+    currentGameObject: {
+      strict: true,
+      namespaced: true,
+      state: {
+        gameObject: []
+      },
+      mutations: {
+        set(state, gameObject) {
+          state.gameObject = gameObject;
+        }
+      }
+    },
+
     tabbar: {
       strict: true,
       namespaced: true,
       state: {
-        index: 2
+        index: 0
       },
       mutations: {
         set(state, index) {

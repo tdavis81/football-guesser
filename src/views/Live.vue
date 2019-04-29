@@ -3,138 +3,29 @@
 
     <v-ons-list>
       <v-ons-list-header>Live Tracker</v-ons-list-header>
+      <v-ons-button @click="refresh()" modifier="large" class="button-margin" style="background-color:green">Refresh</v-ons-button>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <table class="table table-striped table-dark">
           <thead style="text-align:center">
             <tr>
               <th>Player</th>
               <th>Game Rank</th>
-              <th>Winner</th>
               <th>Pts</th>
             </tr>
           </thead>
           <tbody style="text-align:center">
-            <tr>
-              <td>Bruce</td>
-              <td>2.50</td>
-              <td>3</td>
-              <td>2.932</td>
-            </tr>
-            <tr>
-              <td>Chris</td>
-              <td>2.00</td>
-              <td>4</td>
-              <td>3.532</td>
+            <tr v-for="item in liveRankingResults" :key="item.avgRank">
+              <td>{{item.player}}</td>
+              <td>{{item.avgRank}}</td>
+              <td v-if="item.avgRank == 1">1.00</td>
+              <td v-else>0.00</td>
             </tr>
           </tbody>
         </table>
       </v-ons-list-item>
     </v-ons-list>
 
-    <v-ons-list>
-      <v-ons-list-header>Previous Scores</v-ons-list-header>
-      <ons-list-item>
-        <div class="center">
-          <v-ons-select style="width: 100%;text-align:center" @change="changeSelectedGame()" v-model="selectedWeek">
-            <option v-for="(item,index) in psuSchedule" :value="item.Week" :key="index">
-              {{ item.AwayTeam }} at {{ item.HomeTeam }} - Week {{item.Week}}
-            </option>
-          </v-ons-select>
-        </div>
-      </ons-list-item>
-
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
-        </div>
-        <label class="center">
-          <v-ons-input id="homeScore" float maxlength="20"
-            placeholder="Home Score"
-            v-model="homeScore"
-            type="text"
-            readonly          
-          >
-          </v-ons-input>
-        </label>
-      </v-ons-list-item>
-
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
-        </div>
-        <label class="center">
-          <v-ons-input id="awayScore" float maxlength="20"
-            placeholder="Away Score"
-            v-model="awayScore"
-            type="text"
-            readonly
-          >
-          </v-ons-input>
-        </label>
-      </v-ons-list-item>
-
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
-        </div>
-        <label class="center">
-          <v-ons-input  float maxlength="20"
-            placeholder="Winner"
-            v-model="winner"
-            type="text"
-            readonly
-          >
-          </v-ons-input>
-        </label>
-      </v-ons-list-item>
-
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
-        </div>
-        <label class="center">
-          <v-ons-input  float maxlength="20"
-            placeholder="Final Home Score"
-            v-model="finalHomeScore"
-            type="text"
-            readonly
-          >
-          </v-ons-input>
-        </label>
-      </v-ons-list-item>
-
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
-        </div>
-        <label class="center">
-          <v-ons-input  float maxlength="20"
-            placeholder="Final Away Score"
-            v-model="finalAwayScore"
-            type="text"
-            readonly
-          >
-          </v-ons-input>
-        </label>
-      </v-ons-list-item>
-
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-store" class="list-item__icon"></v-ons-icon>
-        </div>
-        <label class="center">
-          <v-ons-input  float maxlength="20"
-            placeholder="Final Winner"
-            v-model="finalWinner"
-            type="text"
-            readonly
-          >
-          </v-ons-input>
-        </label>
-      </v-ons-list-item>
-
-
-    </v-ons-list>
+    
   </v-ons-page>
 </template>
 
@@ -146,85 +37,223 @@ export default {
   data () {
     return {
       psuSchedule: [],
-      selectedWeek: 1,
-      homeScore: '',
-      awayScore: '',
-      winner: '',
-      finalHomeScore: '',
-      finalAwayScore: '',
-      finalWinner: '',
-      currentSeasonYear: '',
-      chosenScores: [],
-      liveGameRankings: [],
-      playersData: [],
-      currentWeek: '',
-      currentGame: {},
+      currentSeason: '',
+      currentWeek: 0,
+      currentGameObject: {},
+      firebaseUserData: [], 
+      liveRankingResults: [],
+      test: this.$store.state.liveScores.scoreObj
     }
   },
   methods: {
-    
-    changeSelectedGame () {
-
-      // When User Changes Previous Scores DropDown Get There Data They Entered For That Week 
-      for(let i =0; i< this.chosenScores.length;i++) { 
-        if(this.chosenScores[i].Week === this.selectedWeek && this.chosenScores[i].Player == "Tyler") { // add && Player == AuthSigned in displayName
-          this.homeScore = this.chosenScores[i].HomeScore;
-          this.awayScore = this.chosenScores[i].AwayScore;
-          this.winner = this.chosenScores[i].Winner;
-          break;
-        } else {
-          this.homeScore = 0;
-          this.awayScore = 0;
-          this.winner = "";
-        }
-      }
-      // IF the game was completed get the Final Winner/Scores
-      for(let i =0; i< this.psuSchedule.length;i++) {
-        if(this.psuSchedule[i].Week === this.selectedWeek) {
-          this.finalHomeScore = this.psuSchedule[i].HomeTeamScore
-          this.finalAwayScore = this.psuSchedule[i].AwayTeamScore
-          this.finalWinner = this.psuSchedule[i].HomeTeamScore > this.psuSchedule[i].AwayTeamScore ? this.psuSchedule[i].HomeTeam: this.psuSchedule[i].AwayTeam
-          break;
-        }
-      }
+    calculateLiveRankings (userGuess) {
       
+      let psuScore = userGuess.PsuScore
+      let opponentScore =  userGuess.OpponentScore
+
+      const selectedWinner = userGuess.Winner;
+      const selectionTotal = ( psuScore + opponentScore );
+      const selectionSpread = ( psuScore - opponentScore );
+      
+      let livePsuScore;
+      let liveOpponentScore;
+      let liveWinner;
+
+      if (this.currentGameObject.HomeTeam === "PENNST") {
+        livePsuScore = this.currentGameObject.HomeTeamScore
+        liveOpponentScore = this.currentGameObject.AwayTeamScore
+        liveWinner = livePsuScore > liveOpponentScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
+      } else if (this.currentGameObject.HomeTeam !== "PENNST") {
+        liveOpponentScore = this.currentGameObject.HomeTeamScore
+        livePsuScore = this.currentGameObject.AwayTeamScore
+        liveWinner = liveOpponentScore > livePsuScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
+      }
+
+      let liveTotal = ( livePsuScore + liveOpponentScore );
+      let liveSpread = ( livePsuScore - liveOpponentScore );
+
+      let psuDelta = Math.abs(livePsuScore - psuScore);
+      let opponentDelta = Math.abs(liveOpponentScore - opponentScore);
+      let totalDelta = Math.abs(psuDelta - opponentDelta);
+      let spreadDelta = ( psuDelta + opponentDelta);
+      let guessedCorrectWinner = liveWinner === userGuess.Winner ? true : false
+
+      this.liveRankingResults.push({
+        player: userGuess.Player,
+        selectedWinner: userGuess.Winner,
+        selectedPsuScore: psuScore,
+        selectedOpponentScore: opponentScore,
+        selectionTotal: selectionTotal,
+        selectionSpread: selectionSpread,
+        liveWinner: liveWinner,
+        livePsuScore: livePsuScore,
+        liveOpponentScore: liveOpponentScore,
+        liveTotal: liveTotal,
+        liveSpread:liveSpread,
+        psuScoreDelta: psuDelta,
+        opponentDelta: opponentDelta,
+        totalDelta: totalDelta,
+        spreadDelta: spreadDelta,
+        guessedCorrectWinner: guessedCorrectWinner,
+        psuRank: null,
+        opponentRank: null,
+        totalRank: null,
+        spreadRank: null,
+        avgRank: null,
+        gameRank: null
+      })
+
     },
 
-    async getPlayerData() {
-      // Get All Documents in Current Season Year From Firebase
-      await db.collection(`${this.currentSeasonYear}_Season`).get().then(querySnapshot =>{
-        querySnapshot.forEach((doc)=>{
-          this.chosenScores.push(doc.data())
+    refresh () {
+      let parsedObj = JSON.parse(JSON.stringify(this.firebaseUserData))
+      
+      //this.getLatestScores()
+      //console.log(this.test)
+      const URL = 'https://api.sportsdata.io';
+      const APIKey = 'aece277790af4bbdaec038cb6d0ad4d5';
+      let gameObj = {};
+
+      fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${APIKey}`)
+      .then((response) => {
+        return response.json();
+      }).then((myJson) => {
+        for (let game of myJson) {
+          if(game.HomeTeam === "PENNST" || game.AwayTeam === "PENNST" ) {
+            this.currentGameObject = game;
+            break;
+          }
+        }
+      }).then(() => {
+        
+        parsedObj.forEach((element) => {
           
+          this.calculateLiveRankings(element)
+
+        })
+        
+        let n = this.liveRankingResults.length; 
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - i - 1; j++) {
+            if (this.liveRankingResults[j].psuScoreDelta > this.liveRankingResults[j + 1].psuScoreDelta) 
+            { 
+              let temp = this.liveRankingResults[j]; 
+              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
+              this.liveRankingResults[j + 1] = temp; 
+            } 
+          }
+        }
+        
+        let counter = 1;
+        this.liveRankingResults.forEach((element) => {
+          element.psuRank = counter;
+          counter++;
+        })
+
+        n = this.liveRankingResults.length; 
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - i - 1; j++) {
+            if (this.liveRankingResults[j].opponentDelta > this.liveRankingResults[j + 1].opponentDelta) 
+            { 
+              let temp = this.liveRankingResults[j]; 
+              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
+              this.liveRankingResults[j + 1] = temp; 
+            } 
+          }
+        }
+
+        counter = 1;
+        this.liveRankingResults.forEach((element) => {
+          element.opponentRank = counter;
+          counter++;
+        })
+
+        n = this.liveRankingResults.length; 
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - i - 1; j++) {
+            if (this.liveRankingResults[j].totalDelta > this.liveRankingResults[j + 1].totalDelta) 
+            { 
+              let temp = this.liveRankingResults[j]; 
+              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
+              this.liveRankingResults[j + 1] = temp; 
+            } 
+          }
+        }
+
+        counter = 1;
+        this.liveRankingResults.forEach((element) => {
+          element.totalRank = counter;
+          counter++;
+        })
+        
+        n = this.liveRankingResults.length; 
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - i - 1; j++) {
+            if (this.liveRankingResults[j].spreadDelta > this.liveRankingResults[j + 1].spreadDelta) 
+            { 
+              let temp = this.liveRankingResults[j]; 
+              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
+              this.liveRankingResults[j + 1] = temp; 
+            } 
+          }
+        }
+
+        counter = 1;
+        this.liveRankingResults.forEach((element) => {
+          element.spreadRank = counter;
+          counter++;
+        })
+
+        this.liveRankingResults.forEach((element) => {
+          let average = ( ( element.psuRank + element.opponentRank + element.totalRank + element.spreadRank ) / 4);
+          element.avgRank = average;
+        })
+
+        n = this.liveRankingResults.length; 
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - i - 1; j++) {
+            if (this.liveRankingResults[j].avgRank > this.liveRankingResults[j + 1].avgRank) 
+            { 
+              let temp = this.liveRankingResults[j]; 
+              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
+              this.liveRankingResults[j + 1] = temp; 
+            } 
+          }
+        }
+        console.log(this.liveRankingResults)
+      })
+
+    },
+    getPlayerData() {
+      // Get All Documents in Current Season Year From Firebase
+      db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
+        querySnapshot.forEach((doc)=>{
           // If Players Datas week == current week add to playersdata array
           if(doc.data().Week === this.currentWeek) {
-            this.playersData.push(doc.data())
+            this.firebaseUserData.push(doc.data())
           }
-
         })
       })
     }
 
   },
   created () {
-    
-    // Get Current Season Year
-    this.currentSeasonYear = new Date().getFullYear();
 
     // Get PSU Schedule From Store
     this.psuSchedule = this.$store.state.psuSchedule.schedule;
 
+    // Get Current Season
+    this.currentSeason = this.$store.state.currentYear.currentYear;
+
     // Get Current Week of Year Ex Week {1}
-    this.currentWeek = this.$store.state.psuCurrentWeek.currentGameWeek;
+    this.currentWeek = this.$store.state.currentWeekNumber.weekNumber;
 
+    // Get Current Game Object
+    //this.currentGameObject = this.$store.state.currentGameObject.gameObject;
+
+    // Get Firebase player Data this.firebaseUserData
     this.getPlayerData();
-    console.log(this.playersData);
 
-    // Get The Current Game Object From PSU Schedule
-    this.currentGame = this.psuSchedule.find((element) => {
-      return element.Week == this.currentWeek
-    });
-    
   }
 }
 

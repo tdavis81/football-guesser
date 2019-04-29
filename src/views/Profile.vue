@@ -2,27 +2,6 @@
   <v-ons-page>
     <v-ons-list>
       <v-ons-list-header>User Information</v-ons-list-header>
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
-        </div>
-        <label class="center">
-          <v-ons-input float maxlength="20"
-            placeholder="Display Name"
-            v-model="displayName"
-            type="number"
-          >
-          </v-ons-input>
-        </label>
-      </v-ons-list-item>
-
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
-        <div class="left">
-          <v-ons-icon icon="md-save" class="list-item__icon"></v-ons-icon>
-        </div>
-         <v-ons-button modifier="large" class="button-margin" style="background-color:green">Save</v-ons-button>
-      </v-ons-list-item>
-
       <v-ons-list>
           <v-ons-list-item v-for="(item, index) in actions" :key="item.title"
             :modifier="md ? 'nodivider' : ''"
@@ -40,11 +19,18 @@
 <script>
 import swal from 'sweetalert';
 import firebase from 'firebase';
+//import admin from 'firebase-admin';
 
 export default {
   data() {
     return {
       displayName: '',
+      users: [],
+      user: {
+        email: '',
+        password: '',
+        displayName: ''
+      },
       actions: [
         {
           title: 'Rankings',
@@ -60,9 +46,12 @@ export default {
       }).catch(function(error) {
         // An error happened.
       });
-      this.$store.commit('tabbar/set', 2);
+      this.$store.commit('tabbar/set', 0);
     },
   },
+  created() {
+    
+  }
   
 };
 </script>
