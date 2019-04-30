@@ -3,7 +3,6 @@
 
     <v-ons-list>
       <v-ons-list-header>Live Tracker</v-ons-list-header>
-      <v-ons-button @click="refresh()" modifier="large" class="button-margin" style="background-color:green">Refresh</v-ons-button>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <table class="table table-striped table-dark">
           <thead style="text-align:center">
@@ -104,8 +103,7 @@ export default {
       })
 
     },
-
-    refresh () {
+    calculateScores () {
       let parsedObj = JSON.parse(JSON.stringify(this.firebaseUserData))
       
       //this.getLatestScores()
@@ -114,7 +112,8 @@ export default {
       const APIKey = 'aece277790af4bbdaec038cb6d0ad4d5';
       let gameObj = {};
 
-      fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${APIKey}`)
+      //fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${APIKey}`)
+      fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${2018}/${1}?key=${APIKey}`)
       .then((response) => {
         return response.json();
       }).then((myJson) => {
@@ -220,9 +219,13 @@ export default {
             } 
           }
         }
-        console.log(this.liveRankingResults)
-      })
+        // Give winning player a point
+        this.liveRankingResults[0].gameRank = 1.00;
+        for(let i =1; i < this.liveRankingResults.length;i++) {
+          this.liveRankingResults[i].gameRank = 0.00;
+        }
 
+      })
     },
     getPlayerData() {
       // Get All Documents in Current Season Year From Firebase
@@ -233,6 +236,20 @@ export default {
             this.firebaseUserData.push(doc.data())
           }
         })
+      }).then(() => {
+        this.calculateScores();
+      }).then(()=> {
+        if (this.currentGameObject.Status === "Final" || this.currentGameObject.Status === "F/OT" ) {
+          this.liveRankingResults.forEach((element) => {
+            console.log(element)
+            db.collection(`${this.$store.state.currentYear.currentYear}_Season_Rankings`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
+              Week: this.currentGame.Week,
+              Season: this.$store.state.currentYear.currentYear,
+              Player: element.Player,
+              Points: element.gameRank
+            })
+          })
+        }
       })
     }
 

@@ -47,7 +47,6 @@ export default {
      // GET current year schedule
     const APIKey = 'aece277790af4bbdaec038cb6d0ad4d5';
     const URL = 'https://api.sportsdata.io';
-
     let currentWeek = new Date();
     let dd = currentWeek.getDate();
     let mm = currentWeek.getMonth()+1; 
@@ -78,25 +77,26 @@ export default {
           currentGameWeekNumber = element.Week;
           currentGameObject = element;
           this.$store.commit('psuSchedule/set', psuSchedule)
+         
           this.$store.commit('currentYear/set', currentYear)
           this.$store.commit('currentWeekNumber/set', currentGameWeekNumber)
-          //this.$store.commit('currentGameObject/set', currentGameObject)
+          this.$store.commit('currentGameObject/set', currentGameObject)
           break;
         }
       }
-
+      /*
       fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${2018}/${1}?key=${APIKey}`)
       .then((response) => {
         return response.json();
       }).then((myJson) => {
         for (let game of myJson) {
           if(game.HomeTeam === "PENNST" || game.AwayTeam === "PENNST" ) {
-            this.$store.commit('currentGameObject/set', game)
+            //this.$store.commit('currentGameObject/set', game)
             break;
           }
         }
       })
-
+      */
     })
   }
 };

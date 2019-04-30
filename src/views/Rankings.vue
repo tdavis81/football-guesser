@@ -14,41 +14,11 @@
             
           </thead>
           <tbody style="text-align:center">
-            <tr>
-              <td>Bruce</td>
-              <td>2.50</td>
-              <td>3</td>
-              <td>2.932</td>
-            </tr>
-            <tr>
-              <td>Chris</td>
-              <td>2.00</td>
-              <td>4</td>
-              <td>3.532</td>
-            </tr>
-            <tr>
-              <td>Dan</td>
-              <td>0.00</td>
-              <td>6</td>
-              <td>4.532</td>
-            </tr>
-            <tr>
-              <td>Louie</td>
-              <td>4.50</td>
-              <td>1</td>
-              <td>2.832</td>
-            </tr>
-            <tr>
-              <td>Morrie</td>
-              <td>1.00</td>
-              <td>5</td>
-              <td>3.9393</td>
-            </tr>
-            <tr>
-              <td>Ron</td>
-              <td>4.00</td>
-              <td>2</td>
-              <td>3.03</td>
+            <tr v-for="rank in finalRankings" :key="rank.Player">
+              <td>{{rank.Player}}</td>
+              <td>{{rank.Points}}</td>
+              <td>{{rank.Standings}}</td>
+              <td>##</td>
             </tr>
           </tbody>
         </table>
@@ -187,7 +157,10 @@ export default {
       psuSchedule: [],
       firebaseUserData: [],
       currentWeek: this.$store.state.currentGameObject.gameObject.Week,
-      currentSeason: this.$store.state.currentYear.currentYear
+      currentSeason: this.$store.state.currentYear.currentYear,
+      rankings: [],
+      players: [],
+      finalRankings: []
     };
   },
   methods: {
@@ -226,11 +199,61 @@ export default {
             this.firebaseUserData.push(doc.data())
         })
       })
-    } 
+    },
+    getFirebasePlayerRankings () {
+      // Get all rankings
+      db.collection(`${this.currentSeason}_Season_Rankings`).get().then(querySnapshot =>{
+        querySnapshot.forEach((doc)=>{
+          this.rankings.push(doc.data())
+          this.players.push(doc.data().Player)
+        })
+      }).then(() => {
+        let players= [...new Set(this.players)];
+        let totalPoints = 0;
+      
+        for (let player of players)
+        {
+          for (let rank of this.rankings)
+          {
+            if (rank.Player === player) {
+              totalPoints += rank.Points
+            }
+          }
+          this.finalRankings.push({
+            Player : player,
+            Points : totalPoints,
+            Standings : null,
+            AvgRank : null
+          })
+          totalPoints = 0
+        }
+        
+      }).then(() => {
+        let n = this.finalRankings.length; 
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - i - 1; j++) {
+            if (this.finalRankings[j].Points < this.finalRankings[j + 1].Points) 
+            { 
+              let temp = this.finalRankings[j]; 
+              this.finalRankings[j] = this.finalRankings[j + 1]; 
+              this.finalRankings[j + 1] = temp; 
+            } 
+          }
+        }
+        let counter = 1
+        this.finalRankings.forEach((el) => {
+          el.Standings = counter;
+          counter++;
+        })
+        console.log(this.finalRankings)
+      })
+      
+    }
   },
   created() {
     this.psuSchedule = this.$store.state.psuSchedule.schedule;
     this.getPlayerData()
+    this.getFirebasePlayerRankings()
   }
 }
 

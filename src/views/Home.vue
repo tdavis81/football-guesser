@@ -29,7 +29,7 @@
     <v-ons-list>
       <ons-list-item>
         <div class="center">
-          <label>{{currentGame.AwayTeam}} at {{currentGame.HomeTeam}} Week-{{currentGame.Week}}</label>
+          <label>{{currentGame.AwayTeam}} at {{currentGame.HomeTeam}} - Week {{currentGame.Week}}</label>
         </div>
       </ons-list-item>
 
@@ -154,9 +154,9 @@ export default {
     }
   },
   created () {
-    
+    //console.log('test')
     firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
+      if (user) { 
         this.modalVisible = false
         this.user.displayName = user.displayName
         this.$store.commit('sessionUser/set', user);
