@@ -17,6 +17,9 @@
                     <div class="col-sm-6">
                         <a href="#" style="color:white">Forgot your password?</a>
                     </div>
+                    <div class="col-sm-6" style="margin-top:10px">
+                      <a v-if="isBeforeWeekOne" href="#" style="color:white">Create Account!</a>
+                    </div>
                 </div>
                 <p v-if="showError" style="color:red">Incorrect username or password.</p>
             </div>
@@ -25,7 +28,7 @@
       </div>
     </v-ons-modal>
 
-
+    <!-- Current Week + Game Label -->
     <v-ons-list>
       <ons-list-item>
         <div class="center">
@@ -33,12 +36,13 @@
         </div>
       </ons-list-item>
 
-     <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+      <!-- Penn State Score Input box -->
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''" id="psuScore">
         <div class="left">
           <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
         </div>
-        <label class="center">
-          <v-ons-input id="psuScore" float maxlength="20"
+        <label class="center" style="width:100%">
+          <v-ons-input  float maxlength="20"
             placeholder="PENNST Score"
             v-model="psuScore"
             type="number"
@@ -47,12 +51,13 @@
         </label>
       </v-ons-list-item>
 
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+      <!-- Opponent Score Input Box -->
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''" id="opponentScore">
         <div class="left">
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
-        <label class="center">
-          <v-ons-input id="opponentSCore" float maxlength="20"
+        <label class="center" style="width:100%">
+          <v-ons-input  float maxlength="20"
             placeholder="Opponent Score"
             v-model="opponentScore"
             type="number"
@@ -61,13 +66,14 @@
         </label>
       </v-ons-list-item>
 
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+      <!-- Choose Winner Dropdown -->
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''" id="winnerDropdown">
         <div class="left">
           <v-ons-icon icon="md-store" class="list-item__icon"></v-ons-icon>
         </div>
         <ons-list-item>
         <div class="center">
-          <v-ons-select style="width: 100%;text-align:center" v-model="selectedOpponent">
+          <v-ons-select style="width: 100%;text-align:center" v-model="selectedWinner">
             <option v-for="(item,index) in opponents" :value="item.value" :key="index">
               {{ item.text }}
             </option>
@@ -75,110 +81,253 @@
         </div>
       </ons-list-item>
       </v-ons-list-item>
+      
+      <!-- Save Button -->
       <v-ons-list-item v-if="!hasSubmitted" :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-save" class="list-item__icon"></v-ons-icon>
         </div>
          <v-ons-button  @click="saveScores()" modifier="large" class="button-margin" style="background-color:green">Save</v-ons-button>
       </v-ons-list-item>
+    
     </v-ons-list>
   </v-ons-page>
 </template>
 
 <script>
-// Set a way to lock 1day or hours before start of game
 
+// Reference To Firebase DB
 import db from '@/db';
+// Reference To Firebase Auth
 import firebase from 'firebase';
+// Reference To Sweet Alerts
 import swal from 'sweetalert';
+// Reference to Moment JS 
+import moment from 'moment'
 
 export default {
-  data () {
+  data () 
+  {
     return {
+      APIKey:'aece277790af4bbdaec038cb6d0ad4d5', // UPDATE TO ACCOUNT APIKEY
+      URL:'https://api.sportsdata.io',
       modalVisible: false,
+      DEBUG: true,
       showError: false,
+      opponents: [],
+      selectedWinner: 'PENNST',
+      isBeforeWeekOne: true,
+      psuScore: '',
+      opponentScore: '',
+      hasSubmitted:false,
+      currentGame: {},
+      currentWeek: 0,
+      currentSeason: 0,
       user: {
         email: '',
         password: '',
         displayName: ''
       },
-      opponents: [],
-      selectedOpponent: 'PENNST',
-      psuScore: '',
-      opponentScore: '',
-      hasSubmitted:false,
-      currentGame: this.$store.state.currentGameObject.gameObject
-    };
+    }
   },
-  methods: {
-    showModal() {
+  methods: 
+  {
+    // Display Login Modal
+    showModal() 
+    {
       this.modalVisible = true;
     },
-    checkUser() {
-        firebase.auth().signInWithEmailAndPassword(this.user.email,this.user.password).then(
-          () => {
-            this.showError = false
-            this.modalVisible = false;
-          },
-          () => {
-            this.showError = true
-            this.modalVisible = true;
-          }
-        )
+
+    // Check User Credentials On Login Button In Modal
+    checkUser() 
+    {
+      firebase.auth().signInWithEmailAndPassword(this.user.email,this.user.password).then(
+        () => {
+          this.showError = false
+          this.modalVisible = false;
+        },
+        () => {
+          this.showError = true
+          this.modalVisible = true;
+        }
+      )
+    },
+
+    // GET Current Week Of Season
+    getCurrentWeek () 
+    {
+      
+      if (this.DEBUG)
+      {
+        this.currentWeek = 1
+        this.getCurrentSeason()
+      }
+      else 
+      {
+        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
+          return response.json();
+        }).then((myJson) => { 
+          // Set Variable to Week Value - Returns EX. 1
+          this.currentWeek = myJson
+          // Commit Current Week To Store
+          this.$store.commit('currentWeekNumber/set', myJson)
+        }).then(() => {
+          // After That Event Completes, GET Current Season Value
+          this.getCurrentSeason()
+        })
+      }
+
+    },
+
+    // GET Current Season
+    getCurrentSeason() 
+    {
+
+      fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.APIKey}`).then((response) => {
+        return response.json();
+      }).then((myJson) => { 
+        // Set Variable to Season Value - Returns EX. 2019
+        this.currentSeason = myJson
+        // Commit Current Year To Store
+        this.$store.commit('currentYear/set', myJson)
+      }).then(() => {
+        // After That Event Completes, GET Current Game Object
+        this.getCurrentGame()
+      })
+
     },
     
-    saveScores () {                                         
-      db.collection(`${this.$store.state.currentYear.currentYear}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
-        Week: this.currentGame.Week,
-        Season: this.$store.state.currentYear.currentYear,
-        Winner: this.selectedOpponent,
-        PsuScore: parseInt(this.psuScore),
-        OpponentScore: parseInt(this.opponentScore),
-        Player: this.user.displayName
-      }).then(function() {
-        swal("Saved","Picks have been saved!","success")
+    // GET Current Game Object
+    getCurrentGame() 
+    {
+    
+      fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${this.APIKey}`).then((response) => {
+        return response.json();
+      }).then((myJson) => {
+        // Find PENNST Game Via Returned JSON Array
+        let psuGame = myJson.find(x => x.HomeTeam === "PENNST" || x.AwayTeam === "PENNST")
+        // Set Variable to PSU Current Game Object
+        this.currentGame = psuGame
+        // Commit Current Game Object To Store
+        this.$store.commit('currentYear/set', this.currentGameObject)
+      }).then(() => {
+        // Once That Compeletes, GET Session Users Submitted Scores If They Have Added Them
+        db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
+          if(!querySnapshot.empty) {
+            querySnapshot.forEach((doc)=>{
+              if(doc.data().Week === this.currentWeek && doc.data().Player === this.user.displayName) 
+              {
+                this.psuScore = doc.data().PsuScore
+                this.opponentScore = doc.data().OpponentScore
+                this.Winner = doc.data().selectedWinner
+              }
+            })
+          }
+        })
+
+        // Get Current Time in format 2019-01-15T15:00:00
+        const currentTime = moment().format('YYYY-MM-DDTHH:mm:ss')
+        // Convert Current Game Objects DateTime To DateTime Of Game Start Time
+        const gameStartDate = moment(this.currentGame.DateTime).format('YYYY-MM-DDTHH:mm:ss')
+        
+        // Check If Current Time Is Greater Than or Equal To Game Start Time If YES Lock Save Btn & Inputs
+        if ( currentTime >= gameStartDate ) 
+        {
+          // Set inputs to readonly
+          document.getElementById('psuScore').style.pointerEvents = "none";
+          document.getElementById('opponentScore').style.pointerEvents = "none";
+          document.getElementById('winnerDropdown').style.pointerEvents = "none";
+
+          // Hide Save Button Once User Has Submitted There Picks
+          this.hasSubmitted = true;
+        }
+        
+        // Push Current Game Home Team && Away Team Into Array For Select Winner Dropdown
+        this.opponents.push( 
+          {
+            text: this.currentGame.HomeTeam,
+            value: this.currentGame.HomeTeam
+          },
+          {
+            text: this.currentGame.AwayTeam,
+            value: this.currentGame.AwayTeam
+          }
+        )
+
+
       })
-      .catch(function(error) {
-        swal("Not Saved","Server Error, Picks not saved. Try Again","error")
-      });
+    
+    },
 
-      // Set inputs to readonly FIX
-      const psuScore = document.getElementById('psuScore');
-      psuScore.childNodes.item("child").readOnly = true;
-      const opponentScore = document.getElementById('opponentScore');
-      opponentScore.childNodes.item("child").readOnly = true;
-
-      // Hide Save Button Once User Has Submitted There Picks
-      this.hasSubmitted = true;
+    // Save Scores to Firebase
+    saveScores () 
+    {     
+      
+      // If Inputs are Null, Alert Message
+      if ( (this.psuScore === null || this.psuScore === "") ||  (this.opponentScore === null || this.opponentScore === "") ) 
+      {
+        swal("Error","Scores cannot be blank","error")
+      } 
+      else 
+      {
+        // Create Collection And Document If It Doesnt Exist Already 
+        db.collection(`${this.$store.state.currentYear.currentYear}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
+          Week: this.currentGame.Week,
+          Season: this.$store.state.currentYear.currentYear,
+          Winner: this.selectedWinner,
+          PsuScore: parseInt(this.psuScore),
+          OpponentScore: parseInt(this.opponentScore),
+          Player: this.user.displayName
+        }).then(function() {
+          swal("Saved","Picks have been saved!","success")
+        })
+        .catch(function(error) {
+          swal("Not Saved",error,"error")
+        });
+      }
       
     }
   },
-  created () {
-    //console.log('test')
+  created () 
+  {
+    
+    // Check If User Is Logged In 
     firebase.auth().onAuthStateChanged((user) => {
-      if (user) { 
+      
+      // If User Exists -- Hide Modal, Set Display name to store, GET Current Week/Season/Game
+      if (user) 
+      { 
+      
         this.modalVisible = false
         this.user.displayName = user.displayName
         this.$store.commit('sessionUser/set', user);
-      } else {
+        
+        this.getCurrentWeek()
+        
+      } 
+      else 
+      {
+        // If User = null, Set Inputs To Blank, Show Modal
         this.user.email = '';
         this.user.password = '';
         this.modalVisible = true
+
+        // Check If Current Time Is Before First Game Of Season, If Yes Show Create Account Link
+        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`)
+        .then((response) => {
+          return response.text()      
+        }).then((myJson) => {
+          if(myJson === null || myJson === "") {
+            this.isBeforeWeekOne = true;
+          } else {
+            this.isBeforeWeekOne = false;
+          }
+        })
+        
       }
+
     });
 
-    this.opponents.push( 
-      {
-        text: this.currentGame.HomeTeam,
-        value: this.currentGame.HomeTeam
-      },
-      {
-        text: this.currentGame.AwayTeam,
-        value: this.currentGame.AwayTeam
-      }
-    )
-
   }
-  
-};
+}
 </script>

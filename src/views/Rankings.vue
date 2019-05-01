@@ -18,7 +18,7 @@
               <td>{{rank.Player}}</td>
               <td>{{rank.Points}}</td>
               <td>{{rank.Standings}}</td>
-              <td>##</td>
+              <td>{{rank.AvgRank}}</td>
             </tr>
           </tbody>
         </table>
@@ -210,22 +210,27 @@ export default {
       }).then(() => {
         let players= [...new Set(this.players)];
         let totalPoints = 0;
-      
+        let totalAverage = 0;
+        let divideCounter = 0;
+
         for (let player of players)
         {
           for (let rank of this.rankings)
           {
             if (rank.Player === player) {
+              divideCounter++;
               totalPoints += rank.Points
+              totalAverage += rank.Average
             }
           }
           this.finalRankings.push({
             Player : player,
             Points : totalPoints,
             Standings : null,
-            AvgRank : null
+            AvgRank : (totalAverage/divideCounter)
           })
           totalPoints = 0
+          divideCounter = 0
         }
         
       }).then(() => {
@@ -251,6 +256,8 @@ export default {
     }
   },
   created() {
+
+    //console.log('test')
     this.psuSchedule = this.$store.state.psuSchedule.schedule;
     this.getPlayerData()
     this.getFirebasePlayerRankings()

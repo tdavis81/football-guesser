@@ -1,6 +1,7 @@
 <template>
   <v-ons-page>
 
+    <!-- Create Simple Table That Organizes Live Rankings Of Users Based On Point Spread -->
     <v-ons-list>
       <v-ons-list-header>Live Tracker</v-ons-list-header>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
@@ -16,8 +17,7 @@
             <tr v-for="item in liveRankingResults" :key="item.avgRank">
               <td>{{item.player}}</td>
               <td>{{item.avgRank}}</td>
-              <td v-if="item.avgRank == 1">1.00</td>
-              <td v-else>0.00</td>
+              <td>0</td>
             </tr>
           </tbody>
         </table>
@@ -35,16 +35,18 @@ export default {
   name: "Live",
   data () {
     return {
-      psuSchedule: [],
       currentSeason: '',
       currentWeek: 0,
       currentGameObject: {},
       firebaseUserData: [], 
       liveRankingResults: [],
-      test: this.$store.state.liveScores.scoreObj
+      user: {
+        displayName: this.$store.state.sessionUser.user
+      }
     }
   },
-  methods: {
+  methods: 
+  {
     calculateLiveRankings (userGuess) {
       
       let psuScore = userGuess.PsuScore
@@ -99,7 +101,8 @@ export default {
         totalRank: null,
         spreadRank: null,
         avgRank: null,
-        gameRank: null
+        gameRank: null,
+        points: null
       })
 
     },
@@ -220,9 +223,14 @@ export default {
           }
         }
         // Give winning player a point
-        this.liveRankingResults[0].gameRank = 1.00;
+        if (true) {
+          // perfect score add 2
+        } else {
+          // else add only 1 poin
+        } 
+        this.liveRankingResults[0].points = 1.00;
         for(let i =1; i < this.liveRankingResults.length;i++) {
-          this.liveRankingResults[i].gameRank = 0.00;
+          this.liveRankingResults[i].points = 0.00;
         }
 
       })
@@ -237,36 +245,42 @@ export default {
           }
         })
       }).then(() => {
+        // Calculate Point Spreads For Players
         this.calculateScores();
       }).then(()=> {
         if (this.currentGameObject.Status === "Final" || this.currentGameObject.Status === "F/OT" ) {
-          this.liveRankingResults.forEach((element) => {
-            console.log(element)
-            db.collection(`${this.$store.state.currentYear.currentYear}_Season_Rankings`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
-              Week: this.currentGame.Week,
-              Season: this.$store.state.currentYear.currentYear,
-              Player: element.Player,
-              Points: element.gameRank
+          db.collection(`${this.currentSeason}_Season_Rankings`).get().then(querySnapshot =>{
+            querySnapshot.forEach((doc)=>{
+              if(!querySnapshot.empty)
+              {
+                const user = this.liveRankingResults.find(x => x.player === doc.data().Player)
+                console.log(user)
+                db.collection(`${this.currentYear}_Season_Rankings`).doc(`Player_${this.user.displayName}`).set({
+                  CurrentWeek: this.currentWeek, // Use This to Calc Average In Rankings
+                  Season: this.currentSeason,
+                  Player: user.player,
+                  Average: doc.data().Average += user.avgRank,
+                  Points: doc.data().Points += user.points
+                })
+              }
             })
           })
         }
       })
-    }
-
+    },
+   
   },
-  created () {
-
-    // Get PSU Schedule From Store
-    this.psuSchedule = this.$store.state.psuSchedule.schedule;
+  created () 
+  {
 
     // Get Current Season
     this.currentSeason = this.$store.state.currentYear.currentYear;
 
     // Get Current Week of Year Ex Week {1}
     this.currentWeek = this.$store.state.currentWeekNumber.weekNumber;
-
+    
     // Get Current Game Object
-    //this.currentGameObject = this.$store.state.currentGameObject.gameObject;
+    this.currentGameObject = this.$store.state.currentGameObject.gameObject;
 
     // Get Firebase player Data this.firebaseUserData
     this.getPlayerData();
