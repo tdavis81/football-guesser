@@ -40,232 +40,136 @@ export default {
       currentGameObject: {},
       firebaseUserData: [], 
       liveRankingResults: [],
+      resultsArray: [],
       user: {
         displayName: this.$store.state.sessionUser.user
+      },
+      userGuessObject: {
+        player: '',
+        psuScore: 0,
+        opponentScore: 0,
+        winningTeam: '',
+        totalPoints: 0,
+        spread: 0
+      },
+      liveScoringObject: {
+        psuScore: 0,
+        opponentScore: 0,
+        winningTeam: "",
+        totalPoints: 0,
+        spread: 0,
+
+      },
+      liveDelta: {
+        psu: 0,
+        opponent: 0,
+        total: 0,
+        spread: 0,
       }
+    }
+  },
+  computed: 
+  {
+    organizeRankings () {
+      return liveRankingRankgs //Check who is first 
     }
   },
   methods: 
   {
-    calculateLiveRankings (userGuess) {
+    getUserGuessSpreads (userFirebaseGameRecord) {
       
-      let psuScore = userGuess.PsuScore
-      let opponentScore =  userGuess.OpponentScore
+      // GET The Current Player In The Iderations
+      this.userGuessObject.player = userFirebaseGameRecord.Player;
+      // GET User PSU Score From Firebase
+      this.userGuessObject.psuScore = userFirebaseGameRecord.PsuScore;
+      // GET User Opponenet Score From Firebase
+      this.userGuessObject.opponentScore = userFirebaseGameRecord.OpponentScore;
+      // GET User Selected Winner From Firebase
+      this.userGuessObject.winningTeam = userFirebaseGameRecord.userGuessWinner
 
-      const selectedWinner = userGuess.Winner;
-      const selectionTotal = ( psuScore + opponentScore );
-      const selectionSpread = ( psuScore - opponentScore );
+      // ADD User PSU Score With User Opponent Score To Get Total
+      this.userGuessObject.totalPoints = ( userFirebaseGameRecord.PsuScore + userFirebaseGameRecord.OpponentScore );
+      // Subtract User PSU Score By User Opponent Score To Get Spread
+      this.userGuessObject.spread = ( userFirebaseGameRecord.PsuScore - userFirebaseGameRecord.OpponentScore );
+
+    },
+    getLiveSpreads () {
       
-      let livePsuScore;
-      let liveOpponentScore;
-      let liveWinner;
-
-      if (this.currentGameObject.HomeTeam === "PENNST") {
-        livePsuScore = this.currentGameObject.HomeTeamScore
-        liveOpponentScore = this.currentGameObject.AwayTeamScore
-        liveWinner = livePsuScore > liveOpponentScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
-      } else if (this.currentGameObject.HomeTeam !== "PENNST") {
-        liveOpponentScore = this.currentGameObject.HomeTeamScore
-        livePsuScore = this.currentGameObject.AwayTeamScore
-        liveWinner = liveOpponentScore > livePsuScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
+      // Check If PSU Is Home Team
+      let isPsuHomeTeam = this.currentGameObject.HomeTeam === 'PENNST' ? true : false;
+      
+      // If True Set PSU Score To Home Team Score & Opponent Score To Away Score & Calculate Winner 
+      if (isPsuHomeTeam) 
+      {
+        this.liveScoringObject.psuScore = this.currentGameObject.HomeTeamScore
+        this.liveScoringObject.opponentScore = this.currentGameObject.AwayTeamScore
+        this.liveScoringObject.winningTeam = this.liveScoringObject.psuScore > this.liveScoringObject.opponentScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
+      } 
+      else 
+      {
+        this.liveScoringObject.psuScore = this.currentGameObject.AwayTeamScore
+        this.liveScoringObject.opponentScore = this.currentGameObject.HomeTeamScore
+        this.liveScoringObject.winningTeam = this.liveScoringObject.psuScore > this.liveScoringObject.opponentScore ? this.currentGameObject.AwayTeam : this.currentGameObject.HomeTeam;
       }
 
-      let liveTotal = ( livePsuScore + liveOpponentScore );
-      let liveSpread = ( livePsuScore - liveOpponentScore );
-
-      let psuDelta = Math.abs(livePsuScore - psuScore);
-      let opponentDelta = Math.abs(liveOpponentScore - opponentScore);
-      let totalDelta = Math.abs(psuDelta - opponentDelta);
-      let spreadDelta = ( psuDelta + opponentDelta);
-      let guessedCorrectWinner = liveWinner === userGuess.Winner ? true : false
-
-      this.liveRankingResults.push({
-        player: userGuess.Player,
-        selectedWinner: userGuess.Winner,
-        selectedPsuScore: psuScore,
-        selectedOpponentScore: opponentScore,
-        selectionTotal: selectionTotal,
-        selectionSpread: selectionSpread,
-        liveWinner: liveWinner,
-        livePsuScore: livePsuScore,
-        liveOpponentScore: liveOpponentScore,
-        liveTotal: liveTotal,
-        liveSpread:liveSpread,
-        psuScoreDelta: psuDelta,
-        opponentDelta: opponentDelta,
-        totalDelta: totalDelta,
-        spreadDelta: spreadDelta,
-        guessedCorrectWinner: guessedCorrectWinner,
-        psuRank: null,
-        opponentRank: null,
-        totalRank: null,
-        spreadRank: null,
-        avgRank: null,
-        gameRank: null,
-        points: null
-      })
+      // ADD Live PSU Score With Live Opponent Score To Get Total
+      this.liveScoringObject.totalPoints = ( this.liveScoringObject.psuScore + this.liveScoringObject.opponentScore );
+      // Subtract Live PSU Score By Live Opponent Score To Get Spread
+      this.liveScoringObject.spread = ( this.liveScoringObject.psuScore - this.liveScoringObject.opponentScore );
 
     },
-    calculateScores () {
-      let parsedObj = JSON.parse(JSON.stringify(this.firebaseUserData))
+    calculateDeltas () {
       
-      //this.getLatestScores()
-      //console.log(this.test)
-      const URL = 'https://api.sportsdata.io';
-      const APIKey = 'aece277790af4bbdaec038cb6d0ad4d5';
-      let gameObj = {};
+      // GET PSU Delta Live Scoring PSU Score Minue User Guess PSU Score
+      this.liveDelta.psu = Math.abs( this.liveScoringObject.psuScore - this.userGuessObject.psuScore );
+      // GET Opponent Delta Live Scoring Opponent Score Minue User Guess Opponent Score
+      this.liveDelta.opponent = Math.abs( this.liveScoringObject.opponentScore - this.userGuessObject.opponentScore );
+      // GET Total Live PSU Minus Live Opponent Score
+      this.liveDelta.total = Math.abs( this.liveDelta.psu - this.liveDelta.opponent );
+      // GET Spread Live PSU Score Plus Live Opponent Score
+      this.liveDelta.spread = ( this.liveDelta.psu + this.liveDelta.opponent );
 
-      //fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${APIKey}`)
-      fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${2018}/${1}?key=${APIKey}`)
-      .then((response) => {
-        return response.json();
-      }).then((myJson) => {
-        for (let game of myJson) {
-          if(game.HomeTeam === "PENNST" || game.AwayTeam === "PENNST" ) {
-            this.currentGameObject = game;
-            break;
-          }
-        }
-      }).then(() => {
-        
-        parsedObj.forEach((element) => {
-          
-          this.calculateLiveRankings(element)
-
-        })
-        
-        let n = this.liveRankingResults.length; 
-        for (let i = 0; i < n - 1; i++) {
-          for (let j = 0; j < n - i - 1; j++) {
-            if (this.liveRankingResults[j].psuScoreDelta > this.liveRankingResults[j + 1].psuScoreDelta) 
-            { 
-              let temp = this.liveRankingResults[j]; 
-              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
-              this.liveRankingResults[j + 1] = temp; 
-            } 
-          }
-        }
-        
-        let counter = 1;
-        this.liveRankingResults.forEach((element) => {
-          element.psuRank = counter;
-          counter++;
-        })
-
-        n = this.liveRankingResults.length; 
-        for (let i = 0; i < n - 1; i++) {
-          for (let j = 0; j < n - i - 1; j++) {
-            if (this.liveRankingResults[j].opponentDelta > this.liveRankingResults[j + 1].opponentDelta) 
-            { 
-              let temp = this.liveRankingResults[j]; 
-              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
-              this.liveRankingResults[j + 1] = temp; 
-            } 
-          }
-        }
-
-        counter = 1;
-        this.liveRankingResults.forEach((element) => {
-          element.opponentRank = counter;
-          counter++;
-        })
-
-        n = this.liveRankingResults.length; 
-        for (let i = 0; i < n - 1; i++) {
-          for (let j = 0; j < n - i - 1; j++) {
-            if (this.liveRankingResults[j].totalDelta > this.liveRankingResults[j + 1].totalDelta) 
-            { 
-              let temp = this.liveRankingResults[j]; 
-              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
-              this.liveRankingResults[j + 1] = temp; 
-            } 
-          }
-        }
-
-        counter = 1;
-        this.liveRankingResults.forEach((element) => {
-          element.totalRank = counter;
-          counter++;
-        })
-        
-        n = this.liveRankingResults.length; 
-        for (let i = 0; i < n - 1; i++) {
-          for (let j = 0; j < n - i - 1; j++) {
-            if (this.liveRankingResults[j].spreadDelta > this.liveRankingResults[j + 1].spreadDelta) 
-            { 
-              let temp = this.liveRankingResults[j]; 
-              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
-              this.liveRankingResults[j + 1] = temp; 
-            } 
-          }
-        }
-
-        counter = 1;
-        this.liveRankingResults.forEach((element) => {
-          element.spreadRank = counter;
-          counter++;
-        })
-
-        this.liveRankingResults.forEach((element) => {
-          let average = ( ( element.psuRank + element.opponentRank + element.totalRank + element.spreadRank ) / 4);
-          element.avgRank = average;
-        })
-
-        n = this.liveRankingResults.length; 
-        for (let i = 0; i < n - 1; i++) {
-          for (let j = 0; j < n - i - 1; j++) {
-            if (this.liveRankingResults[j].avgRank > this.liveRankingResults[j + 1].avgRank) 
-            { 
-              let temp = this.liveRankingResults[j]; 
-              this.liveRankingResults[j] = this.liveRankingResults[j + 1]; 
-              this.liveRankingResults[j + 1] = temp; 
-            } 
-          }
-        }
-        // Give winning player a point
-        if (true) {
-          // perfect score add 2
-        } else {
-          // else add only 1 poin
-        } 
-        this.liveRankingResults[0].points = 1.00;
-        for(let i =1; i < this.liveRankingResults.length;i++) {
-          this.liveRankingResults[i].points = 0.00;
-        }
-
-      })
     },
-    getPlayerData() {
-      // Get All Documents in Current Season Year From Firebase
+    addToResultsArray () {
+      
+      /*
+      {
+        Player: "Tyler",
+        deltas: {
+          psu: 5,
+          opponent: 10,
+          total: 15,
+          spread:5
+        }
+      }
+      */
+      this.resultsArray.push({
+        player: this.userGuessObject.player,
+        deltas: this.liveDelta,
+      })
+
+    },
+    startCalculations () {
+
+      this.getLiveSpreads()
+      this.firebaseUserData.forEach((el) => {
+        this.getUserGuessSpreads(el)
+        this.calculateDeltas()
+        this.addToResultsArray();
+      })
+      //this.calculateRankings() // should be computed call
+      
+    },
+    getPlayerData () {
       db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
         querySnapshot.forEach((doc)=>{
-          // If Players Datas week == current week add to playersdata array
+          //console.log(this.currentWeek)
           if(doc.data().Week === this.currentWeek) {
             this.firebaseUserData.push(doc.data())
           }
         })
       }).then(() => {
-        // Calculate Point Spreads For Players
-        this.calculateScores();
-      }).then(()=> {
-        if (this.currentGameObject.Status === "Final" || this.currentGameObject.Status === "F/OT" ) {
-          db.collection(`${this.currentSeason}_Season_Rankings`).get().then(querySnapshot =>{
-            querySnapshot.forEach((doc)=>{
-              if(!querySnapshot.empty)
-              {
-                const user = this.liveRankingResults.find(x => x.player === doc.data().Player)
-                console.log(user)
-                db.collection(`${this.currentYear}_Season_Rankings`).doc(`Player_${this.user.displayName}`).set({
-                  CurrentWeek: this.currentWeek, // Use This to Calc Average In Rankings
-                  Season: this.currentSeason,
-                  Player: user.player,
-                  Average: doc.data().Average += user.avgRank,
-                  Points: doc.data().Points += user.points
-                })
-              }
-            })
-          })
-        }
+        this.startCalculations();
       })
     },
    
