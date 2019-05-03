@@ -10,12 +10,15 @@ import VueOnsen from 'vue-onsenui';
 import CustomToolbar from './partials/CustomToolbar.vue';
 import Vuex from 'vuex';
 import AppNavigator from './AppNavigator.vue';
+import moment from 'moment'
 
 //import App from './App.vue'
 //import firebase from 'firebase'
 
 Vue.use(VueOnsen);
 Vue.use(Vuex);
+
+
 /*
 const config = {
   apiKey: "AIzaSyA7iDaCYCAt3bswTe3LIlYhL1TDG-2q03A",

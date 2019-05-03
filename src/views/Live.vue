@@ -1,5 +1,5 @@
 <template>
-  <v-ons-page>
+  <v-ons-page :key="componentKey">
 
     <!-- Create Simple Table That Organizes Live Rankings Of Users Based On Point Spread -->
     <v-ons-list>
@@ -32,11 +32,16 @@
 
 <script>
 import db from '@/db';
+// Reference to Moment JS 
+import moment from 'moment'
 
 export default {
   name: "Live",
   data () {
     return {
+      APIKey:'aece277790af4bbdaec038cb6d0ad4d5', // UPDATE TO ACCOUNT APIKEY
+      URL:'https://api.sportsdata.io',
+      DEBUG: true,
       currentSeason: '',
       currentWeek: 0,
       currentGameObject: {},
@@ -67,7 +72,8 @@ export default {
         opponent: 0,
         total: 0,
         spread: 0,
-      }
+      },
+      componentKey: 0
     }
   },
   computed: 
@@ -142,15 +148,17 @@ export default {
       let spreadDelta = Math.abs( psuDelta - opponentDelta );
       
       // Add To Results Array
-      this.addToResultsArray(player,psuDelta,opponentDelta,selectedWinner,totalDelta,spreadDelta);
+      this.addToResultsArray(player,psuDelta,opponentDelta,selectedWinner,totalDelta,spreadDelta,psuScore,opponentScore);
     
     
     },
-    addToResultsArray (player,psuDelta,opponentDelta,selectedWinner,totalDelta,spreadDelta) {
+    addToResultsArray (player,psuDelta,opponentDelta,selectedWinner,totalDelta,spreadDelta,psuScore,opponentScore) {
       
       this.resultsArray.push({
         player: player,
         selectedWinner: selectedWinner,
+        playerPsuScore: psuScore,
+        playerOpponentScore: opponentScore, 
         psuDelta: psuDelta,
         opponentDelta: opponentDelta,
         totalDelta: totalDelta,
@@ -161,75 +169,148 @@ export default {
         spreadDeltaRank: null,
         avgRank: null,
         finalNumRank: null,
-        awardedPoints: null
+        awardedPoints: 0
       })
+      
+    },
+    organizeRanks (num) {
+      this.resultsArray.sort(function(a, b) {
+        let a1;
+        let b1;
+        switch(num) {
+          case 1:
+            a1 = a.psuDelta
+            b1 = b.psuDelta
+          break;
+          case 2:
+            a1 = a.opponentDelta
+            b1 = b.opponentDelta
+          break;
+          case 3:
+            a1 = a.totalDelta
+            b1 = b.totalDelta
+          break;
+          case 4:
+            a1 = a.spreadDelta
+            b1 = b.spreadDelta
+          break;
+        }
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+    },
+    assignRanks (num) {
+      for(let i=0; i < this.resultsArray.length;i++) {
+        switch(num) {
+          case 1:
+            if (i > 0) {
+              if (this.resultsArray[i-1].psuDelta === this.resultsArray[i].psuDelta) {
+                this.resultsArray[i].psuRank = this.resultsArray[i-1].psuRank;
+              } else {
+                this.resultsArray[i].psuRank = i+1
+              }
+            } else {
+              this.resultsArray[i].psuRank = i+1;
+            }
+          break;
+          case 2:
+            if (i > 0) {
+              if (this.resultsArray[i-1].opponentDelta === this.resultsArray[i].opponentDelta) {
+                this.resultsArray[i].opponentRank = this.resultsArray[i-1].opponentRank;
+              } else {
+                this.resultsArray[i].opponentRank = i+1
+              }
+            } else {
+              this.resultsArray[i].opponentRank = i+1;
+            }
+          break;
+          case 3:
+            if (i > 0) {
+              if (this.resultsArray[i-1].totalDelta === this.resultsArray[i].totalDelta) {
+                this.resultsArray[i].totalDeltaRank = this.resultsArray[i-1].totalDeltaRank;
+              } else {
+                this.resultsArray[i].totalDeltaRank = i+1
+              }
+            } else {
+              this.resultsArray[i].totalDeltaRank = i+1;
+            }
+          break;
+          case 4:
+            if (i > 0) {
+              if (this.resultsArray[i-1].spread === this.resultsArray[i].spread) {
+                this.resultsArray[i].spreadDeltaRank = this.resultsArray[i-1].spreadDeltaRank;
+              } else {
+                this.resultsArray[i].spreadDeltaRank = i+1
+              }
+            } else {
+              this.resultsArray[i].spreadDeltaRank = i+1;
+            }
+          break;
+        }
+      }
       
     },
     sortRankings () {
       
-      this.resultsArray.sort(function(a, b) {
-        var a1 = a.psuDelta
-        var b1 = b.psuDelta
-        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
-      });
-
-      for(let i=0; i < this.resultsArray.length;i++) {
-        this.resultsArray[i].psuRank = i+1;
-      }
-
-      this.resultsArray.sort(function(a, b) {
-        var a1 = a.opponentDelta
-        var b1 = b.opponentDelta
-        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
-      });
-
-      for(let i=0; i < this.resultsArray.length;i++) {
-        this.resultsArray[i].opponentRank = i+1;
-      }
-
-      this.resultsArray.sort(function(a, b) {
-        var a1 = a.totalDelta
-        var b1 = b.totalDelta
-        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
-      });
-
-      for(let i=0; i < this.resultsArray.length;i++) {
-        this.resultsArray[i].totalDeltaRank = i+1;
-      }
-
-      this.resultsArray.sort(function(a, b) {
-        var a1 = a.spreadDelta
-        var b1 = b.spreadDelta
-        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
-      });
-
-      for(let i=0; i < this.resultsArray.length;i++) {
-        this.resultsArray[i].spreadDeltaRank = i+1;
-      }
-
-      for(let i=0; i < this.resultsArray.length;i++) {
-        let totalRankPoints = ( this.resultsArray[i].psuRank + this.resultsArray[i].opponentRank + this.resultsArray[i].totalDeltaRank + this.resultsArray[i].spreadDeltaRank ); 
-        let avgRank = ( totalRankPoints / 4 );
-        this.resultsArray[i].avgRank = avgRank;
-      }
-
-      this.resultsArray.sort(function(a, b) {
-        var a1 = a.avgRank
-        var b1 = b.avgRank
-        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
-      });
-
-      for(let i=0; i < this.resultsArray.length;i++) {
-        this.resultsArray[i].finalNumRank = i+1;
+      for(let i =1; i < 5;i++) {
+        this.organizeRanks(i);
+        this.assignRanks(i);
       }
       
-      for(let i=0; i < this.resultsArray.length;i++) {
-        if (i == 0)
-          this.resultsArray[i].awardedPoints = 1.00;
+      // Get Final Average 
+      for(let i =0; i < this.resultsArray.length;i++) {
+        let isWinnerPoint = 0;
+        if(this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam) {
+          isWinnerPoint = 1;
+        }
+        let total= (this.resultsArray[i].psuRank + this.resultsArray[i].opponentRank +  this.resultsArray[i].totalDeltaRank +  this.resultsArray[i].spreadDeltaRank + isWinnerPoint );
+        this.resultsArray[i].avgRank = ( total / 4 );
+      }
+
+      // Get Final Position // FIX this entire shit
+      for(let i =0; i < this.resultsArray.length;i++) {
+        if (i > 0) 
+        {
+          if (this.resultsArray[i-1].avgRank === this.resultsArray[i].avgRank) {
+            this.resultsArray[i].finalNumRank = this.resultsArray[i-1].finalNumRank;
+          } else {
+            this.resultsArray[i].finalNumRank = i+1
+          }
+        } 
         else 
-          this.resultsArray[i].awardedPoints = 0.00;
+        {
+          this.resultsArray[i].finalNumRank = i+1;
+        }
       }
       
+      // Get Count of Players with Final Rank 1
+      let positionOneCount = 0;
+      for(let i=0; i < this.resultsArray.length;i++) {
+        if(this.resultsArray[i].finalNumRank === 1) {
+          positionOneCount++;
+        }
+        this.resultsArray[i].awardedPoints = 0.00
+      }
+      
+      for(let i=0; i < positionOneCount;i++) {
+        if (positionOneCount === 1) {
+          if (this.resultsArray[i].playerPsuScore === this.liveScoringObject.psuScore 
+          && this.resultsArray[i].playerOpponentScore === this.liveScoringObject.opponentScore 
+          && this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam ) {
+            this.resultsArray[i].awardedPoints = 2.00;
+          } else
+            this.resultsArray[i].awardedPoints = 1.00;
+        }
+        else {
+          if (this.resultsArray[i].playerPsuScore === this.liveScoringObject.psuScore 
+          && this.resultsArray[i].playerOpponentScore === this.liveScoringObject.opponentScore 
+          && this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam ) {
+            this.resultsArray[i].awardedPoints = 2.00;
+          } else
+            this.resultsArray[i].awardedPoints = 1.00 / positionOneCount;
+        }
+      }
+
+
 
     },
     startCalculations () {
@@ -239,7 +320,6 @@ export default {
         this.getUserGuessSpreads(el)
       })
       this.sortRankings()
-      console.log(this.resultsArray)
       //this.calculateRankings() // should be computed call
     
     },
@@ -254,22 +334,67 @@ export default {
         this.startCalculations();
       })
     },
-   
+    // GET Current Week Of Season
+    getCurrentWeek () 
+    {
+      if (this.DEBUG)
+      {
+        this.currentWeek = 1
+        this.getCurrentSeason()
+      }
+      else 
+      {
+        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
+          return response.json();
+        }).then((myJson) => { 
+          // Set Variable to Week Value - Returns EX. 1
+          this.currentWeek = myJson
+        }).then(() => {
+          // After That Event Completes, GET Current Season Value
+          this.getCurrentSeason()
+        })
+      }
+
+    },
+
+    // GET Current Season
+    getCurrentSeason() 
+    {
+
+      fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.APIKey}`).then((response) => {
+        return response.json();
+      }).then((myJson) => { 
+        // Set Variable to Season Value - Returns EX. 2019
+        this.currentSeason = myJson
+      }).then(() => {
+        // After That Event Completes, GET Current Game Object
+        this.getCurrentGame()
+      })
+
+    },
+    
+    // GET Current Game Object
+    getCurrentGame() 
+    { 
+      //this.currentSeason
+      fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${2018}/${this.currentWeek}?key=${this.APIKey}`).then((response) => {
+        return response.json();
+      }).then((myJson) => {
+        // Find PENNST Game Via Returned JSON Array
+        let psuGame = myJson.find(x => x.HomeTeam === "PENNST" || x.AwayTeam === "PENNST")
+        // Set Variable to PSU Current Game Object
+        this.currentGameObject = psuGame
+      }).then(() => {
+        // Get Firebase player Data this.firebaseUserData
+        this.getPlayerData();
+      }).then(() => {
+        
+      })
+    }
   },
   created () 
   {
-
-    // Get Current Season
-    this.currentSeason = this.$store.state.currentYear.currentYear;
-
-    // Get Current Week of Year Ex Week {1}
-    this.currentWeek = this.$store.state.currentWeekNumber.weekNumber;
-    
-    // Get Current Game Object
-    this.currentGameObject = this.$store.state.currentGameObject.gameObject;
-
-    // Get Firebase player Data this.firebaseUserData
-    this.getPlayerData();
+    this.getCurrentWeek()
 
   }
 }
