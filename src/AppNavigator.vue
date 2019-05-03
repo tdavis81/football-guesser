@@ -80,7 +80,7 @@ export default {
          
           this.$store.commit('currentYear/set', currentYear)
           this.$store.commit('currentWeekNumber/set', currentGameWeekNumber)
-          this.$store.commit('currentGameObject/set', currentGameObject)
+          //this.$store.commit('currentGameObject/set', currentGameObject)
           break;
         }
       }

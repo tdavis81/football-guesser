@@ -9,15 +9,17 @@
           <thead style="text-align:center">
             <tr>
               <th>Player</th>
-              <th>Game Rank</th>
+              <th>Game Avg</th>
+              <th>Position</th>
               <th>Pts</th>
             </tr>
           </thead>
           <tbody style="text-align:center">
-            <tr v-for="item in liveRankingResults" :key="item.avgRank">
+            <tr v-for="item in resultsArray" :key="item.avgRank">
               <td>{{item.player}}</td>
               <td>{{item.avgRank}}</td>
-              <td>0</td>
+              <td>{{item.finalNumRank}}</td>
+              <td>{{item.awardedPoints}}</td>
             </tr>
           </tbody>
         </table>
@@ -76,23 +78,6 @@ export default {
   },
   methods: 
   {
-    getUserGuessSpreads (userFirebaseGameRecord) {
-      
-      // GET The Current Player In The Iderations
-      this.userGuessObject.player = userFirebaseGameRecord.Player;
-      // GET User PSU Score From Firebase
-      this.userGuessObject.psuScore = userFirebaseGameRecord.PsuScore;
-      // GET User Opponenet Score From Firebase
-      this.userGuessObject.opponentScore = userFirebaseGameRecord.OpponentScore;
-      // GET User Selected Winner From Firebase
-      this.userGuessObject.winningTeam = userFirebaseGameRecord.userGuessWinner
-
-      // ADD User PSU Score With User Opponent Score To Get Total
-      this.userGuessObject.totalPoints = ( userFirebaseGameRecord.PsuScore + userFirebaseGameRecord.OpponentScore );
-      // Subtract User PSU Score By User Opponent Score To Get Spread
-      this.userGuessObject.spread = ( userFirebaseGameRecord.PsuScore - userFirebaseGameRecord.OpponentScore );
-
-    },
     getLiveSpreads () {
       
       // Check If PSU Is Home Team
@@ -118,35 +103,133 @@ export default {
       this.liveScoringObject.spread = ( this.liveScoringObject.psuScore - this.liveScoringObject.opponentScore );
 
     },
-    calculateDeltas () {
+    getUserGuessSpreads (userFirebaseGameRecord) {
       
-      // GET PSU Delta Live Scoring PSU Score Minue User Guess PSU Score
-      this.liveDelta.psu = Math.abs( this.liveScoringObject.psuScore - this.userGuessObject.psuScore );
-      // GET Opponent Delta Live Scoring Opponent Score Minue User Guess Opponent Score
-      this.liveDelta.opponent = Math.abs( this.liveScoringObject.opponentScore - this.userGuessObject.opponentScore );
-      // GET Total Live PSU Minus Live Opponent Score
-      this.liveDelta.total = Math.abs( this.liveDelta.psu - this.liveDelta.opponent );
-      // GET Spread Live PSU Score Plus Live Opponent Score
-      this.liveDelta.spread = ( this.liveDelta.psu + this.liveDelta.opponent );
+      // GET The Current Player In The Iteriation
+      let player = userFirebaseGameRecord.Player;
+      
+      // GET User PSU Score From Firebase
+      let psuScore = userFirebaseGameRecord.PsuScore;
+      
+      // GET User Opponenet Score From Firebase
+      let opponentScore = userFirebaseGameRecord.OpponentScore;
+      
+      // GET User Selected Winner From Firebase
+      let selectedWinner = userFirebaseGameRecord.Winner
+      
+      // ADD User PSU Score With User Opponent Score To Get Total
+      let totalPoints = ( psuScore + opponentScore );
+      
+      // Subtract User PSU Score By User Opponent Score To Get Spread
+      let spread = ( psuScore - opponentScore );
+      
+      // Calculate Deltas From Live Scoring and User Guesses
+      this.calculateDeltas(player,psuScore,opponentScore,selectedWinner,totalPoints,spread)
 
     },
-    addToResultsArray () {
+    calculateDeltas (player,psuScore,opponentScore,selectedWinner,totalPoints,spread) {
+
+      // GET PSU Delta Live Scoring PSU Score Minue User Guess PSU Score
+      let psuDelta = Math.abs( this.liveScoringObject.psuScore - psuScore );
+
+      // GET Opponent Delta Live Scoring Opponent Score Minue User Guess Opponent Score
+      let opponentDelta = Math.abs( this.liveScoringObject.opponentScore - opponentScore );
+
+      // GET Total Live PSU Minus Live Opponent Score
+      let totalDelta =  ( psuDelta + opponentDelta );
+
+      // GET Spread Live PSU Score Plus Live Opponent Score
+      let spreadDelta = Math.abs( psuDelta - opponentDelta );
       
-      /*
-      {
-        Player: "Tyler",
-        deltas: {
-          psu: 5,
-          opponent: 10,
-          total: 15,
-          spread:5
-        }
-      }
-      */
+      // Add To Results Array
+      this.addToResultsArray(player,psuDelta,opponentDelta,selectedWinner,totalDelta,spreadDelta);
+    
+    
+    },
+    addToResultsArray (player,psuDelta,opponentDelta,selectedWinner,totalDelta,spreadDelta) {
+      
       this.resultsArray.push({
-        player: this.userGuessObject.player,
-        deltas: this.liveDelta,
+        player: player,
+        selectedWinner: selectedWinner,
+        psuDelta: psuDelta,
+        opponentDelta: opponentDelta,
+        totalDelta: totalDelta,
+        spreadDelta: spreadDelta,
+        psuRank: null,
+        opponentRank: null,
+        totalDeltaRank: null,
+        spreadDeltaRank: null,
+        avgRank: null,
+        finalNumRank: null,
+        awardedPoints: null
       })
+      
+    },
+    sortRankings () {
+      
+      this.resultsArray.sort(function(a, b) {
+        var a1 = a.psuDelta
+        var b1 = b.psuDelta
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+
+      for(let i=0; i < this.resultsArray.length;i++) {
+        this.resultsArray[i].psuRank = i+1;
+      }
+
+      this.resultsArray.sort(function(a, b) {
+        var a1 = a.opponentDelta
+        var b1 = b.opponentDelta
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+
+      for(let i=0; i < this.resultsArray.length;i++) {
+        this.resultsArray[i].opponentRank = i+1;
+      }
+
+      this.resultsArray.sort(function(a, b) {
+        var a1 = a.totalDelta
+        var b1 = b.totalDelta
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+
+      for(let i=0; i < this.resultsArray.length;i++) {
+        this.resultsArray[i].totalDeltaRank = i+1;
+      }
+
+      this.resultsArray.sort(function(a, b) {
+        var a1 = a.spreadDelta
+        var b1 = b.spreadDelta
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+
+      for(let i=0; i < this.resultsArray.length;i++) {
+        this.resultsArray[i].spreadDeltaRank = i+1;
+      }
+
+      for(let i=0; i < this.resultsArray.length;i++) {
+        let totalRankPoints = ( this.resultsArray[i].psuRank + this.resultsArray[i].opponentRank + this.resultsArray[i].totalDeltaRank + this.resultsArray[i].spreadDeltaRank ); 
+        let avgRank = ( totalRankPoints / 4 );
+        this.resultsArray[i].avgRank = avgRank;
+      }
+
+      this.resultsArray.sort(function(a, b) {
+        var a1 = a.avgRank
+        var b1 = b.avgRank
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+
+      for(let i=0; i < this.resultsArray.length;i++) {
+        this.resultsArray[i].finalNumRank = i+1;
+      }
+      
+      for(let i=0; i < this.resultsArray.length;i++) {
+        if (i == 0)
+          this.resultsArray[i].awardedPoints = 1.00;
+        else 
+          this.resultsArray[i].awardedPoints = 0.00;
+      }
+      
 
     },
     startCalculations () {
@@ -154,16 +237,15 @@ export default {
       this.getLiveSpreads()
       this.firebaseUserData.forEach((el) => {
         this.getUserGuessSpreads(el)
-        this.calculateDeltas()
-        this.addToResultsArray();
       })
+      this.sortRankings()
+      console.log(this.resultsArray)
       //this.calculateRankings() // should be computed call
-      
+    
     },
     getPlayerData () {
       db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
         querySnapshot.forEach((doc)=>{
-          //console.log(this.currentWeek)
           if(doc.data().Week === this.currentWeek) {
             this.firebaseUserData.push(doc.data())
           }

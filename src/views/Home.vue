@@ -199,9 +199,9 @@ export default {
     
     // GET Current Game Object
     getCurrentGame() 
-    {
-    
-      fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${this.APIKey}`).then((response) => {
+    { 
+      //this.currentSeason
+      fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${2018}/${this.currentWeek}?key=${this.APIKey}`).then((response) => {
         return response.json();
       }).then((myJson) => {
         // Find PENNST Game Via Returned JSON Array
@@ -209,7 +209,7 @@ export default {
         // Set Variable to PSU Current Game Object
         this.currentGame = psuGame
         // Commit Current Game Object To Store
-        this.$store.commit('currentYear/set', this.currentGameObject)
+        this.$store.commit('currentGameObject/set', this.currentGame)
       }).then(() => {
         // Once That Compeletes, GET Session Users Submitted Scores If They Have Added Them
         db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
