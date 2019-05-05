@@ -194,6 +194,10 @@ export default {
             a1 = a.spreadDelta
             b1 = b.spreadDelta
           break;
+          case 5:
+            a1 = a.avgRank
+            b1 = b.avgRank
+          break;
         }
         return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
       });
@@ -245,6 +249,20 @@ export default {
               this.resultsArray[i].spreadDeltaRank = i+1;
             }
           break;
+          case 5:
+          if (i > 0) 
+          {
+            if (this.resultsArray[i-1].avgRank === this.resultsArray[i].avgRank) {
+              this.resultsArray[i].finalNumRank = this.resultsArray[i-1].finalNumRank;
+            } else {
+              this.resultsArray[i].finalNumRank = i+1
+            }
+          } 
+          else 
+          {
+            this.resultsArray[i].finalNumRank = i+1;
+          }
+          break;
         }
       }
       
@@ -258,29 +276,11 @@ export default {
       
       // Get Final Average 
       for(let i =0; i < this.resultsArray.length;i++) {
-        let isWinnerPoint = 0;
-        if(this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam) {
-          isWinnerPoint = 1;
-        }
-        let total= (this.resultsArray[i].psuRank + this.resultsArray[i].opponentRank +  this.resultsArray[i].totalDeltaRank +  this.resultsArray[i].spreadDeltaRank + isWinnerPoint );
+        let total= (this.resultsArray[i].psuRank + this.resultsArray[i].opponentRank +  this.resultsArray[i].totalDeltaRank +  this.resultsArray[i].spreadDeltaRank);
         this.resultsArray[i].avgRank = ( total / 4 );
       }
-
-      // Get Final Position // FIX this entire shit
-      for(let i =0; i < this.resultsArray.length;i++) {
-        if (i > 0) 
-        {
-          if (this.resultsArray[i-1].avgRank === this.resultsArray[i].avgRank) {
-            this.resultsArray[i].finalNumRank = this.resultsArray[i-1].finalNumRank;
-          } else {
-            this.resultsArray[i].finalNumRank = i+1
-          }
-        } 
-        else 
-        {
-          this.resultsArray[i].finalNumRank = i+1;
-        }
-      }
+      this.organizeRanks(5);
+      this.assignRanks(5)
       
       // Get Count of Players with Final Rank 1
       let positionOneCount = 0;
@@ -304,7 +304,7 @@ export default {
           if (this.resultsArray[i].playerPsuScore === this.liveScoringObject.psuScore 
           && this.resultsArray[i].playerOpponentScore === this.liveScoringObject.opponentScore 
           && this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam ) {
-            this.resultsArray[i].awardedPoints = 2.00;
+            this.resultsArray[i].awardedPoints = 3.00 / positionOneCount;
           } else
             this.resultsArray[i].awardedPoints = 1.00 / positionOneCount;
         }

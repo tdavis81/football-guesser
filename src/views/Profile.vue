@@ -1,7 +1,39 @@
 <template>
   <v-ons-page>
-    <v-ons-list>
+    <v-ons-list style="text-align:center">
+      <v-ons-icon style="font-size:115px" icon="md-face" class="list-item__icon"></v-ons-icon>
       <v-ons-list-header>User Information</v-ons-list-header>
+
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+        <div class="left">
+          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+        </div>
+        <label class="center">
+          <v-ons-input float maxlength="70"
+            placeholder="User Email"
+            v-model="user.email"
+            type="text"
+            readonly
+          >
+          </v-ons-input>
+        </label>
+      </v-ons-list-item>
+
+       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+        <div class="left">
+          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+        </div>
+        <label class="center">
+          <v-ons-input float maxlength="70"
+            placeholder="User Display Name"
+            v-model="user.displayName"
+            type="text"
+            readonly
+          >
+          </v-ons-input>
+        </label>
+      </v-ons-list-item>
+
       <v-ons-list>
           <v-ons-list-item v-for="(item, index) in actions" :key="item.title"
             :modifier="md ? 'nodivider' : ''"
@@ -26,11 +58,7 @@ export default {
     return {
       displayName: '',
       users: [],
-      user: {
-        email: '',
-        password: '',
-        displayName: ''
-      },
+      user: [],
       actions: [
         {
           title: 'Rankings',
@@ -50,7 +78,13 @@ export default {
     },
   },
   created() {
-    
+    firebase.auth().onAuthStateChanged((user) => {
+      if(user){
+        this.user = user
+      } else {
+        // No Auth
+      }
+    });
   }
   
 };

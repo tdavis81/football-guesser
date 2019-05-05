@@ -14,11 +14,11 @@
             
           </thead>
           <tbody style="text-align:center">
-            <tr v-for="rank in finalRankings" :key="rank.Player">
+            <tr v-for="rank in firebaseUserRankings" :key="rank.Player">
               <td>{{rank.Player}}</td>
               <td>{{rank.Points}}</td>
               <td>{{rank.Standings}}</td>
-              <td>{{rank.AvgRank}}</td>
+              <td>{{rank.Average}}</td>
             </tr>
           </tbody>
         </table>
@@ -44,7 +44,7 @@
         </div>
         <label class="center">
           <v-ons-input id="psuScore" float maxlength="20"
-            placeholder="PENNST Score"
+            placeholder="User PENNST Score"
             v-model="psuScore"
             type="text"
             readonly          
@@ -59,7 +59,7 @@
         </div>
         <label class="center">
           <v-ons-input id="opponentScore" float maxlength="20"
-            placeholder="Opponent Score"
+            placeholder="User Opponent Score"
             v-model="opponentScore"
             type="text"
             readonly
@@ -74,7 +74,7 @@
         </div>
         <label class="center">
           <v-ons-input  float maxlength="20"
-            placeholder="Winner"
+            placeholder="User Winner"
             v-model="winner"
             type="text"
             readonly
@@ -146,7 +146,10 @@ export default {
   name: "Rankings",
   data() {
     return {
-      user: this.$store.state.sessionUser.user,
+      APIKey:'aece277790af4bbdaec038cb6d0ad4d5', // UPDATE TO ACCOUNT APIKEY
+      URL:'https://api.sportsdata.io',
+      DEBUG : true,
+      userDisplayName: '',
       psuScore: '',
       opponentScore: '',
       winner: '',
@@ -154,10 +157,11 @@ export default {
       finalAwayScore: '',
       finalWinner: '',
       selectedWeek: '', 
-      psuSchedule: [],
       firebaseUserData: [],
-      currentWeek: this.$store.state.currentGameObject.gameObject.Week,
-      currentSeason: this.$store.state.currentYear.currentYear,
+      firebaseUserRankings: [],
+      currentWeek: '',
+      currentSeason: '',
+      psuSchedule: [],
       rankings: [],
       players: [],
       finalRankings: []
@@ -165,11 +169,11 @@ export default {
   },
   methods: {
     changeSelectedGame () {
-      
+       
       // When User Changes Previous Scores DropDown Get There Data They Entered For That Week 
       for(let i =0; i< this.firebaseUserData.length;i++) { 
-
-        if(this.firebaseUserData[i].Week === this.selectedWeek && this.firebaseUserData[i].Player == this.user.displayName) { // add && Player == AuthSigned in displayName
+       
+        if(this.firebaseUserData[i].Week === this.selectedWeek && this.firebaseUserData[i].Player == this.userDisplayName) { 
           this.psuScore = this.firebaseUserData[i].PsuScore;
           this.opponentScore = this.firebaseUserData[i].OpponentScore;
           this.winner = this.firebaseUserData[i].Winner;
@@ -196,71 +200,110 @@ export default {
       db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
         querySnapshot.forEach((doc)=>{
           // If Players Datas week == current week add to playersdata array
-            this.firebaseUserData.push(doc.data())
+          this.firebaseUserData.push(doc.data())
         })
+      }).then(() =>{
+        this.getCurrentWeek()  
       })
     },
     getFirebasePlayerRankings () {
       // Get all rankings
-      db.collection(`${this.currentSeason}_Season_Rankings`).get().then(querySnapshot =>{
+      db.collection(`${2019}_Season_Rankings`).get().then(querySnapshot =>{
         querySnapshot.forEach((doc)=>{
-          this.rankings.push(doc.data())
-          this.players.push(doc.data().Player)
-        })
-      }).then(() => {
-        let players= [...new Set(this.players)];
-        let totalPoints = 0;
-        let totalAverage = 0;
-        let divideCounter = 0;
-
-        for (let player of players)
-        {
-          for (let rank of this.rankings)
-          {
-            if (rank.Player === player) {
-              divideCounter++;
-              totalPoints += rank.Points
-              totalAverage += rank.Average
-            }
-          }
-          this.finalRankings.push({
-            Player : player,
-            Points : totalPoints,
-            Standings : null,
-            AvgRank : (totalAverage/divideCounter)
+          this.firebaseUserRankings.push({
+            Player: doc.data().Player,
+            Season: doc.data().Season,
+            Points: doc.data().Points,
+            Average: doc.data().Average,
+            Standings: null
           })
-          totalPoints = 0
-          divideCounter = 0
-        }
-        
+        })
       }).then(() => {
-        let n = this.finalRankings.length; 
-        for (let i = 0; i < n - 1; i++) {
-          for (let j = 0; j < n - i - 1; j++) {
-            if (this.finalRankings[j].Points < this.finalRankings[j + 1].Points) 
-            { 
-              let temp = this.finalRankings[j]; 
-              this.finalRankings[j] = this.finalRankings[j + 1]; 
-              this.finalRankings[j + 1] = temp; 
-            } 
+        this.firebaseUserRankings.sort((a, b) => {
+          let a1 = a.Points;
+          let b1 = b.Points;
+          return (a1 > b1) ? -1 : (a1 < b1) ? 1 : 0;
+        });
+        for(let i =0; i < this.firebaseUserRankings.length;i++) {
+          if (i > 0) {
+            if (this.firebaseUserRankings[i-1].Points === this.firebaseUserRankings[i].Points) {
+              this.firebaseUserRankings[i].Standings = this.firebaseUserRankings[i-1].Standings;
+            } else {
+              this.firebaseUserRankings[i].Standings = i+1
+            }
+          } else {
+            this.firebaseUserRankings[i].Standings = i+1;
           }
         }
-        let counter = 1
-        this.finalRankings.forEach((el) => {
-          el.Standings = counter;
-          counter++;
-        })
-        console.log(this.finalRankings)
       })
+    },
+    // GET Current Week Of Season
+    getCurrentWeek () 
+    {
       
+      if (this.DEBUG)
+      {
+        this.currentWeek = 1
+        this.getCurrentSeason()
+      }
+      else 
+      {
+        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
+          return response.json();
+        }).then((myJson) => { 
+          // Set Variable to Week Value - Returns EX. 1
+          this.currentWeek = myJson
+          // Commit Current Week To Store
+          this.$store.commit('currentWeekNumber/set', myJson)
+        }).then(() => {
+          // After That Event Completes, GET Current Season Value
+          this.getCurrentSeason()
+        })
+      }
+
+    },
+
+    // GET Current Season
+    getCurrentSeason() 
+    {
+
+      fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.APIKey}`).then((response) => {
+        return response.json();
+      }).then((myJson) => { 
+        // Set Variable to Season Value - Returns EX. 2019
+        this.currentSeason = myJson
+        // Commit Current Year To Store
+        this.$store.commit('currentYear/set', myJson)
+      }).then(() => {
+        // After That Event Completes, GET Current Game Object
+        this.getPsuSchedule()
+      })
+
+    },
+    getPsuSchedule () {
+      fetch(`${this.URL}/v3/cfb/scores/json/Games/${2018}?key=${this.APIKey}`).then((response) => {
+        return response.json();
+      }).then((myJson) => { 
+        myJson.forEach((element) => {
+          if(element.HomeTeam === "PENNST" || element.AwayTeam === "PENNST") {
+            this.psuSchedule.push(element);
+          }
+        });
+      }).then(()=> {
+        this.getPlayerData()
+      })
+
     }
   },
   created() {
-
-    //console.log('test')
-    this.psuSchedule = this.$store.state.psuSchedule.schedule;
-    this.getPlayerData()
-    this.getFirebasePlayerRankings()
+    firebase.auth().onAuthStateChanged((user) => {
+      if (this.DEBUG)
+        this.userDisplayName = "Tyler"
+      else 
+        this.userDisplayName = user.displayName
+      this.getCurrentWeek()
+      this.getFirebasePlayerRankings()
+    });
   }
 }
 
