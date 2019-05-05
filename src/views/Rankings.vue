@@ -14,7 +14,7 @@
             
           </thead>
           <tbody style="text-align:center">
-            <tr v-for="rank in firebaseUserRankings" :key="rank.Player">
+            <tr v-for="(rank,index) in firebaseUserRankings" :key="index">
               <td>{{rank.Player}}</td>
               <td>{{rank.Points}}</td>
               <td>{{rank.Standings}}</td>

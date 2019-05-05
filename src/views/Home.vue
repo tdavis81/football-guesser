@@ -3,7 +3,7 @@
 
     <!-- Login Modal -->
     <v-ons-modal :visible="modalVisible">
-      <div class="login" style="margin-top:5%">
+      <div  class="login" style="margin-top:5%">
         <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
         <div class="row">
             <div class="col-md-4"></div>
@@ -15,18 +15,62 @@
                         <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Login" @click="checkUser()">
                     </div>
                     <div class="col-sm-6">
-                        <a href="#" style="color:white">Forgot your password?</a>
+                        <a href="#" @click="showForgotPasswordPage()" style="color:white">Forgot your password?</a>
                     </div>
                     <div class="col-sm-6" style="margin-top:10px">
-                      <a v-if="isBeforeWeekOne" href="#" style="color:white">Create Account!</a>
+                      <a v-if="isBeforeWeekOne" @click="showCreateAccountPage()" href="#" style="color:white">Create Account!</a>
                     </div>
                 </div>
-                <p v-if="showError" style="color:red">Incorrect username or password.</p>
+                <p v-if="showError" style="color:red">Incorrect Credentials.</p>
             </div>
             <div class="col-md-4"></div>
-      </div>
+        </div>
       </div>
     </v-ons-modal>
+    
+    <!-- Forgot Password -->
+    <v-ons-modal :visible="forgotPasswordVisible">
+      <div class="login">
+        <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
+                <div class="row" style="margin-top:10px">
+                    <div class="col-sm-6">
+                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Reset" @click="ResetPassword()">
+                    </div>
+                </div>
+                <p v-if="showError" style="color:red">Incorrect Credentials.</p>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+      </div>
+    </v-ons-modal>
+
+    <!-- Show Create Account -->
+    <v-ons-modal :visible="createAccountVisible">
+      <div class="login">
+        <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
+                <input type="password" v-model="user.password" class="fadeIn third" placeholder="Password" required>
+                <input type="text" v-model="user.displayName" class="fadeIn fourth" placeholder="Display Name" required>
+                <div class="row" style="margin-top:10px">
+                    <div class="col-sm-6">
+                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Create" @click="createAccount()">
+                    </div>
+                </div>
+                <p v-if="showError" style="color:red">Incorrect Credentials.</p>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+      </div>
+    </v-ons-modal>
+
+      
 
     <!-- Current Week + Game Label -->
     <v-ons-list>
@@ -113,6 +157,8 @@ export default {
       URL:'https://api.sportsdata.io',
       modalVisible: false,
       DEBUG: true,
+      forgotPasswordVisible: false,
+      createAccountVisible: false,
       showError: false,
       opponents: [],
       selectedWinner: 'PENNST',
@@ -133,6 +179,31 @@ export default {
   methods: 
   {
     // Display Login Modal
+    showForgotPasswordPage () {
+      this.modalVisible = false;
+      this.forgotPasswordVisible = true;
+      this.createAccountVisible = false
+    },
+    resetPassword () {
+      let auth = firebase.auth();
+
+      firebase.sendPasswordResetEmail(this.user.email).then(() => {
+        swal('Success','Reset Email has been sent.','success')
+        this.showError = false;
+      }).catch((error) => {
+        this.showError = true;
+        swal('Error',error,'error')
+      });
+    },
+    // Display Login Modal
+    showCreateAccountPage () {
+      this.modalVisible = false;
+      this.forgotPasswordVisible = false;
+      this.createAccountVisible = true
+    },
+    createAccount () {
+      /// chheck if null , check if display exists already
+    },
     showModal() 
     {
       this.modalVisible = true;
