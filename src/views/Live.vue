@@ -15,7 +15,7 @@
             </tr>
           </thead>
           <tbody style="text-align:center">
-            <tr v-for="item in resultsArray" :key="item.avgRank">
+            <tr v-for="(item,index) in resultsArray" :key="index">
               <td>{{item.player}}</td>
               <td>{{item.avgRank}}</td>
               <td>{{item.finalNumRank}}</td>
@@ -73,13 +73,8 @@ export default {
         total: 0,
         spread: 0,
       },
-      componentKey: 0
-    }
-  },
-  computed: 
-  {
-    organizeRankings () {
-      return liveRankingRankgs //Check who is first 
+      componentKey: 0,
+      completeFinalList: []
     }
   },
   methods: 
@@ -168,6 +163,10 @@ export default {
         totalDeltaRank: null,
         spreadDeltaRank: null,
         avgRank: null,
+        avgRankNumber: null,
+        winnerRank: null, 
+        loseRank: null,
+        bonusPoint: 0,
         finalNumRank: null,
         awardedPoints: 0
       })
@@ -250,25 +249,124 @@ export default {
             }
           break;
           case 5:
-          if (i > 0) 
-          {
-            if (this.resultsArray[i-1].avgRank === this.resultsArray[i].avgRank) {
-              this.resultsArray[i].finalNumRank = this.resultsArray[i-1].finalNumRank;
-            } else {
-              this.resultsArray[i].finalNumRank = i+1
+            if (i > 0) 
+            {
+              if (this.resultsArray[i-1].avgRank === this.resultsArray[i].avgRank) {
+                this.resultsArray[i].avgRankNumber = this.resultsArray[i-1].avgRankNumber;
+              } else {
+                this.resultsArray[i].avgRankNumber = i+1
+              }
+            } 
+            else 
+            {
+              this.resultsArray[i].avgRankNumber = i+1;
             }
-          } 
-          else 
-          {
-            this.resultsArray[i].finalNumRank = i+1;
-          }
           break;
         }
       }
+    },
+    getWinnerLoseRank () {
+      let tempWinnerObject = [];
+      let tempLoserObject = [];
+      let winnerCount = 0;
       
+      for(let i =0; i < this.resultsArray.length;i++) {
+        if(this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam) {
+          tempWinnerObject.push(this.resultsArray[i])
+        } else {
+          tempLoserObject.push(this.resultsArray[i])
+        }
+      }
+
+      // Sort all winners by avg rank
+      tempWinnerObject.sort((a, b) => {
+        let a1 = a.avgRank;
+        let b1 = b.avgRank;
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+
+      // Assing Final Ranks
+      for(let i=0; i < tempWinnerObject.length;i++) {
+        winnerCount++;
+        if (i > 0) 
+        {
+          if (tempWinnerObject[i-1].avgRank === tempWinnerObject[i].avgRank) {
+            tempWinnerObject[i].winnerRank = tempWinnerObject[i-1].winnerRank;
+          } else {
+            tempWinnerObject[i].winnerRank = i+1
+          }
+        } 
+        else 
+        {
+          tempWinnerObject[i].winnerRank = i+1;
+        }
+      }
+
+      // Sort all winners by avg rank
+      tempLoserObject.sort((a, b) => {
+        let a1 = a.avgRank;
+        let b1 = b.avgRank;
+        return (a1 < b1) ? -1 : (a1 > b1) ? 1 : 0;
+      });
+
+      // Assing Final Ranks
+      for(let i=0; i < tempLoserObject.length;i++) {
+        if (i > 0) 
+        {
+          if (tempLoserObject[i-1].avgRank === tempLoserObject[i].avgRank) {
+            tempLoserObject[i].loseRank = tempLoserObject[i-1].loseRank;
+          } else {
+            tempLoserObject[i].loseRank = ( winnerCount + 1)
+          }
+        } 
+        else 
+        {
+          tempLoserObject[i].loseRank = ( winnerCount + 1 );
+        }
+      }
+      
+      this.completeFinalList.push(tempWinnerObject)
+      this.completeFinalList.push(tempLoserObject)
+
+    },
+    getBonusPoint () {
+      for(let i =0; i < this.resultsArray.length;i++) {
+        if(this.resultsArray[i].psuScore === this.liveScoringObject.psuScore && this.resultsArray[i].opponentScore === this.liveScoringObject.opponentScore ) {
+          this.resultsArray[i].bonusPoint = 1.00;
+        }
+      }
+    },
+    generateFinalRankings () {
+      for(let i =0; i < this.resultsArray.length;i++) {
+        if (this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam) {
+          this.resultsArray[i].finalNumRank = this.resultsArray[i].winnerRank 
+        } else {
+          this.resultsArray[i].finalNumRank = this.resultsArray[i].loseRank 
+        }
+        
+      }
+    },
+    calculateAwardedPoints () {
+      let numOfWinners = 0;
+      for(let i =0; i < this.resultsArray.length;i++) {
+        if(this.resultsArray[i].finalNumRank === 1) {
+          numOfWinners++;
+        }
+      }
+
+      for(let i =0; i < this.resultsArray.length;i++) {
+        if(this.resultsArray[i].finalNumRank === 1) {
+          this.resultsArray[i].awardedPoints = ( ( this.resultsArray[i].finalNumRank / numOfWinners) + this.resultsArray[i].bonusPoint );
+        } else {
+          this.resultsArray[i].awardedPoints = this.resultsArray[i].bonusPoint;
+        }
+        
+      }
+
+
     },
     sortRankings () {
-      
+      // Cycle through all major delta categories psuscore,oppoenntscore,totaldelta,spreaddelta
       for(let i =1; i < 5;i++) {
         this.organizeRanks(i);
         this.assignRanks(i);
@@ -279,37 +377,15 @@ export default {
         let total= (this.resultsArray[i].psuRank + this.resultsArray[i].opponentRank +  this.resultsArray[i].totalDeltaRank +  this.resultsArray[i].spreadDeltaRank);
         this.resultsArray[i].avgRank = ( total / 4 );
       }
+      
+      // Organize By Final Average this.resultsArray Now Organized Lowest AvgRank - Highest AvgRank
       this.organizeRanks(5);
       this.assignRanks(5)
-      
-      // Get Count of Players with Final Rank 1
-      let positionOneCount = 0;
-      for(let i=0; i < this.resultsArray.length;i++) {
-        if(this.resultsArray[i].finalNumRank === 1) {
-          positionOneCount++;
-        }
-        this.resultsArray[i].awardedPoints = 0.00
-      }
-      
-      for(let i=0; i < positionOneCount;i++) {
-        if (positionOneCount === 1) {
-          if (this.resultsArray[i].playerPsuScore === this.liveScoringObject.psuScore 
-          && this.resultsArray[i].playerOpponentScore === this.liveScoringObject.opponentScore 
-          && this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam ) {
-            this.resultsArray[i].awardedPoints = 2.00;
-          } else
-            this.resultsArray[i].awardedPoints = 1.00;
-        }
-        else {
-          if (this.resultsArray[i].playerPsuScore === this.liveScoringObject.psuScore 
-          && this.resultsArray[i].playerOpponentScore === this.liveScoringObject.opponentScore 
-          && this.resultsArray[i].selectedWinner === this.liveScoringObject.winningTeam ) {
-            this.resultsArray[i].awardedPoints = 3.00 / positionOneCount;
-          } else
-            this.resultsArray[i].awardedPoints = 1.00 / positionOneCount;
-        }
-      }
 
+      this.getWinnerLoseRank();
+      this.getBonusPoint();
+      this.generateFinalRankings();
+      this.calculateAwardedPoints();
 
 
     },
@@ -323,6 +399,35 @@ export default {
       //this.calculateRankings() // should be computed call
     
     },
+    saveToFireBase () {
+      
+      if(this.currentGameObject.Status === 'Final' || this.currentGameObject.Status === 'F/OT' ) {
+        db.collection(`${this.currentSeason}_Season_Rankings`).get().then(querySnapshot =>{
+          querySnapshot.forEach((doc)=>{
+            if(!querySnapshot.empty) {
+              let player = this.resultsArray.find(x => x.player === doc.data().Player);
+              db.collection(`${this.currentSeason}_Season_Rankings`).doc(`Player_${doc.data().Player}`).set({
+                Player: doc.data().Player,
+                Average:  ( player.avgRank + doc.data().Average ),
+                Points: (player.awardedPoints + doc.data().Points ),
+                Week: this.currentWeek
+              })
+            }
+            else {
+              for(let i =0;i<this.resultsArray.length;i++) {
+                db.collection(`${this.currentSeason}_Season_Rankings`).doc(`Player_${doc.data().Player}`).set({
+                  Player: this.resultsArray[i].player,
+                  Average:  this.resultsArray[i].avgRank,
+                  Points: this.resultsArray[i].awardedPoints,
+                  Week: this.currentWeek
+                })
+              }
+            }
+            
+          })
+        })
+      }
+    },
     getPlayerData () {
       db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
         querySnapshot.forEach((doc)=>{
@@ -332,6 +437,8 @@ export default {
         })
       }).then(() => {
         this.startCalculations();
+      }).then(()=> {
+        this.saveToFireBase()
       })
     },
     // GET Current Week Of Season

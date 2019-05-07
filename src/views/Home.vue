@@ -342,9 +342,9 @@ export default {
       else 
       {
         // Create Collection And Document If It Doesnt Exist Already 
-        db.collection(`${this.$store.state.currentYear.currentYear}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
+        db.collection(`${this.currentSeason}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
           Week: this.currentGame.Week,
-          Season: this.$store.state.currentYear.currentYear,
+          Season: this.currentSeason,
           Winner: this.selectedWinner,
           PsuScore: parseInt(this.psuScore),
           OpponentScore: parseInt(this.opponentScore),

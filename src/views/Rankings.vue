@@ -43,7 +43,7 @@
           <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input id="psuScore" float maxlength="20"
+          <v-ons-input class="inputSize" id="psuScore" float maxlength="20"
             placeholder="User PENNST Score"
             v-model="psuScore"
             type="text"
@@ -58,7 +58,7 @@
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input id="opponentScore" float maxlength="20"
+          <v-ons-input class="inputSize" id="opponentScore" float maxlength="20"
             placeholder="User Opponent Score"
             v-model="opponentScore"
             type="text"
@@ -73,7 +73,7 @@
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input  float maxlength="20"
+          <v-ons-input class="inputSize" float maxlength="20"
             placeholder="User Winner"
             v-model="winner"
             type="text"
@@ -88,7 +88,7 @@
           <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input  float maxlength="20"
+          <v-ons-input class="inputSize" float maxlength="20"
             placeholder="Final Home Score"
             v-model="finalHomeScore"
             type="text"
@@ -103,7 +103,7 @@
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input  float maxlength="20"
+          <v-ons-input class="inputSize" float maxlength="20"
             placeholder="Final Away Score"
             v-model="finalAwayScore"
             type="text"
@@ -118,7 +118,7 @@
           <v-ons-icon icon="md-store" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input  float maxlength="20"
+          <v-ons-input class="inputSize" float maxlength="20"
             placeholder="Final Winner"
             v-model="finalWinner"
             type="text"
@@ -212,9 +212,9 @@ export default {
         querySnapshot.forEach((doc)=>{
           this.firebaseUserRankings.push({
             Player: doc.data().Player,
-            Season: doc.data().Season,
+            Week: doc.data().Week,
             Points: doc.data().Points,
-            Average: doc.data().Average,
+            Average: doc.data().Average / doc.data().Week,
             Standings: null
           })
         })
@@ -308,3 +308,9 @@ export default {
 }
 
 </script>
+
+<style>
+.inputSize {
+  width: 100%
+}
+</style>
