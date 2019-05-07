@@ -149,7 +149,7 @@ export default {
       APIKey:'aece277790af4bbdaec038cb6d0ad4d5', // UPDATE TO ACCOUNT APIKEY
       URL:'https://api.sportsdata.io',
       DEBUG : true,
-      userDisplayName: '',
+      user: [],
       psuScore: '',
       opponentScore: '',
       winner: '',
@@ -173,7 +173,7 @@ export default {
       // When User Changes Previous Scores DropDown Get There Data They Entered For That Week 
       for(let i =0; i< this.firebaseUserData.length;i++) { 
        
-        if(this.firebaseUserData[i].Week === this.selectedWeek && this.firebaseUserData[i].Player == this.userDisplayName) { 
+        if(this.firebaseUserData[i].Week === this.selectedWeek && this.firebaseUserData[i].UserID == this.user.uid) { 
           this.psuScore = this.firebaseUserData[i].PsuScore;
           this.opponentScore = this.firebaseUserData[i].OpponentScore;
           this.winner = this.firebaseUserData[i].Winner;
@@ -297,12 +297,9 @@ export default {
   },
   created() {
     firebase.auth().onAuthStateChanged((user) => {
-      if (this.DEBUG)
-        this.userDisplayName = "Tyler"
-      else 
-        this.userDisplayName = user.displayName
-      this.getCurrentWeek()
-      this.getFirebasePlayerRankings()
+      this.user = user
+      // this.getCurrentWeek()
+      // this.getFirebasePlayerRankings()
     });
   }
 }

@@ -44,60 +44,7 @@ export default {
     }
   },
   created () {
-     // GET current year schedule
-    const APIKey = 'aece277790af4bbdaec038cb6d0ad4d5';
-    const URL = 'https://api.sportsdata.io';
-    let currentWeek = new Date();
-    let dd = currentWeek.getDate();
-    let mm = currentWeek.getMonth()+1; 
-    const currentYear = currentWeek.getFullYear();
-    const time = currentWeek.getHours() + ":" + currentWeek.getMinutes() + ":" + currentWeek.getSeconds();
-    let psuSchedule = [];
-    let currentGameWeekNumber = 0;
-    let currentGameObject = {};
-
-    mm = mm < 10 ? `0${mm}`: mm;
-    dd = dd < 10 ? `0${dd}`: dd;
-    currentWeek = `${currentYear}-${mm}-${dd}T${time}`;
-
-    fetch(`${URL}/v3/cfb/scores/json/Games/${currentYear}?key=${APIKey}`)
-    .then((response) => {
-      return response.json();
-    })
-    .then((myJson) => {
-
-      myJson.forEach((element) => {
-        if(element.HomeTeam === "PENNST" || element.AwayTeam === "PENNST") {
-          psuSchedule.push(element);
-        }
-      });
-      
-      for (let element of psuSchedule) {
-        if(element.Status === "Scheduled" && currentWeek <= element.Day ) {
-          currentGameWeekNumber = element.Week;
-          currentGameObject = element;
-          this.$store.commit('psuSchedule/set', psuSchedule)
-         
-          this.$store.commit('currentYear/set', currentYear)
-          this.$store.commit('currentWeekNumber/set', currentGameWeekNumber)
-          //this.$store.commit('currentGameObject/set', currentGameObject)
-          break;
-        }
-      }
-      /*
-      fetch(`${URL}/v3/cfb/scores/json/GamesByWeek/${2018}/${1}?key=${APIKey}`)
-      .then((response) => {
-        return response.json();
-      }).then((myJson) => {
-        for (let game of myJson) {
-          if(game.HomeTeam === "PENNST" || game.AwayTeam === "PENNST" ) {
-            //this.$store.commit('currentGameObject/set', game)
-            break;
-          }
-        }
-      })
-      */
-    })
+   
   }
 };
 </script>

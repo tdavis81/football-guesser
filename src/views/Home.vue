@@ -21,7 +21,7 @@
                       <a v-if="isBeforeWeekOne" @click="showCreateAccountPage()" href="#" style="color:white">Create Account!</a>
                     </div>
                 </div>
-                <p v-if="showError" style="color:red">Incorrect Credentials.</p>
+                <p v-if="showError" style="color:red">{{errorMsg}}</p>
             </div>
             <div class="col-md-4"></div>
         </div>
@@ -38,10 +38,10 @@
                 <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
                 <div class="row" style="margin-top:10px">
                     <div class="col-sm-6">
-                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Reset" @click="ResetPassword()">
+                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Reset" @click="resetPassword()">
                     </div>
                 </div>
-                <p v-if="showError" style="color:red">Incorrect Credentials.</p>
+                <p v-if="showError" style="color:red">{{errorMsg}}</p>
             </div>
             <div class="col-md-4"></div>
         </div>
@@ -63,7 +63,7 @@
                         <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Create" @click="createAccount()">
                     </div>
                 </div>
-                <p v-if="showError" style="color:red">Incorrect Credentials.</p>
+                <p v-if="showError" style="color:red">{{errorMsg}}</p>
             </div>
             <div class="col-md-4"></div>
         </div>
@@ -160,6 +160,7 @@ export default {
       forgotPasswordVisible: false,
       createAccountVisible: false,
       showError: false,
+      errorMsg: '',
       opponents: [],
       selectedWinner: 'PENNST',
       isBeforeWeekOne: true,
@@ -169,11 +170,7 @@ export default {
       currentGame: {},
       currentWeek: 0,
       currentSeason: 0,
-      user: {
-        email: '',
-        password: '',
-        displayName: ''
-      },
+      user: []
     }
   },
   methods: 
@@ -187,23 +184,67 @@ export default {
     resetPassword () {
       let auth = firebase.auth();
 
-      firebase.sendPasswordResetEmail(this.user.email).then(() => {
-        swal('Success','Reset Email has been sent.','success')
+      auth.sendPasswordResetEmail(this.user.email).then(() => {
         this.showError = false;
+        this.modalVisible = true;
+        this.forgotPasswordVisible = false;
+        this.createAccountVisible = false
       }).catch((error) => {
         this.showError = true;
-        swal('Error',error,'error')
+        this.errorMsg = 'Either the email doesnt exist or there is a server issue';
       });
     },
     // Display Login Modal
     showCreateAccountPage () {
+      this.user.email = '',
+      this.user.password = '',
+      this.user.displayName = '',
       this.modalVisible = false;
       this.forgotPasswordVisible = false;
       this.createAccountVisible = true
     },
     createAccount () {
-      /// chheck if null , check if display exists already
-    },
+      let displayName = this.user.displayName
+      /// chheck if null , check if display name exists already/ login user hide models
+      if (this.user.email === '' || this.user.email === null || this.user.password === '' || this.user.password === null || this.user.displayName === '' || this.user.displayName === null) {
+        this.showError = true;
+        this.errorMsg = 'Fields cannot be blank.';
+      }
+      else {
+        this.showError = false;
+        firebase.auth().createUserWithEmailAndPassword(this.user.email, this.user.password)
+        .then(()=> {
+          firebase.auth().signInWithEmailAndPassword(this.user.email,this.user.password)
+          .then(()=> {
+            firebase.auth().currentUser.updateProfile({
+              displayName: displayName
+            }).then(()=> {
+              let user = firebase.auth().currentUser;
+              user.sendEmailVerification().then(() => {
+                // Login User and hide Models
+                this.modalVisible = false;
+                this.forgotPasswordVisible = false;
+                this.createAccountVisible = false;
+              }).catch((error) => {
+                this.showError = true;
+                this.errorMsg = error;
+              });
+            }).catch((error) => {
+              this.showError = true;
+              this.errorMsg = error;
+            });
+          }).catch((error) => {
+            this.showError = true;
+            this.errorMsg = error;
+          })
+        })
+        .catch((error) => {
+          this.showError = true;
+          this.errorMsg = error;
+        })
+      }
+      
+    },  
     showModal() 
     {
       this.modalVisible = true;
@@ -219,6 +260,7 @@ export default {
         },
         () => {
           this.showError = true
+          this.errorMsg = 'Incorrect Credentials';
           this.modalVisible = true;
         }
       )
@@ -325,7 +367,6 @@ export default {
           }
         )
 
-
       })
     
     },
@@ -348,7 +389,8 @@ export default {
           Winner: this.selectedWinner,
           PsuScore: parseInt(this.psuScore),
           OpponentScore: parseInt(this.opponentScore),
-          Player: this.user.displayName
+          Player: this.user.displayName,
+          UserID: this.user.uid
         }).then(function() {
           swal("Saved","Picks have been saved!","success")
         })
@@ -361,19 +403,18 @@ export default {
   },
   created () 
   {
-    
+   
     // Check If User Is Logged In 
     firebase.auth().onAuthStateChanged((user) => {
       
       // If User Exists -- Hide Modal, Set Display name to store, GET Current Week/Season/Game
       if (user) 
       { 
-      
         this.modalVisible = false
-        this.user.displayName = user.displayName
+        this.user = user
         this.$store.commit('sessionUser/set', user);
-        
-        this.getCurrentWeek()
+        console.log(this.user)
+        //this.getCurrentWeek()
         
       } 
       else 

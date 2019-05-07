@@ -48,9 +48,7 @@ export default {
       firebaseUserData: [], 
       liveRankingResults: [],
       resultsArray: [],
-      user: {
-        displayName: this.$store.state.sessionUser.user
-      },
+      user:[],
       userGuessObject: {
         player: '',
         psuScore: 0,
@@ -501,7 +499,7 @@ export default {
   },
   created () 
   {
-    this.getCurrentWeek()
+    //this.getCurrentWeek()
 
   }
 }
