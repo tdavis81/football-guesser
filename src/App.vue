@@ -40,53 +40,22 @@ export default {
       // GET Current Week Of Season
       getCurrentWeek () 
       {
-        if(localStorage.getItem('timeoutTime') === null) 
-        {
-          localStorage.setItem('timeoutTime',moment().add(6, "days").format("DD-MM-YYYY"));
-          this.getCurrentWeek();
-          return;
-        } 
-        else 
-        {
-          let timeout = localStorage.getItem('timeoutTime')
-          if (moment().format("DD-MM-YYYY") < moment(timeout).format('DD-MM-YYYY')) 
-          {
-            if(localStorage.getItem('currentGameWeek') === null) 
-            {
-              fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
-                return response.text();
-              }).then((myJson) => {
-                this.currentWeek = myJson === '' || myJson === null ? 1 : JSON.parse(myJson);
-                // Commit Current Week To Store EX : 1
-                this.$store.commit('currentWeekNumber/set', this.currentWeek);
-                localStorage.setItem('currentGameWeek', this.currentWeek);
-              }).then(() => {
-                // After That Event Completes, GET Current Season Value
-                this.getCurrentSeason();
-              })
-              
-            } 
-            else 
-            {
-              this.currentWeek = sessionStorage.getItem('currentGameWeek');
-              this.$store.commit('currentWeekNumber/set', this.currentWeek);   
-              this.getCurrentSeason();  
-            }
-          } 
-          else 
-          {
-            localStorage.removeItem('timeoutTime');
-            localStorage.removeItem('currentGameWeek');
-            this.getCurrentWeek();
-          }
-        }
-
+        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
+          return response.text();
+        }).then((myJson) => {
+          this.currentWeek = myJson === '' || myJson === null ? 1 : JSON.parse(myJson);
+          // Commit Current Week To Store EX : 1
+          this.$store.commit('currentWeekNumber/set', this.currentWeek);
+          localStorage.setItem('currentGameWeek', this.currentWeek);
+        }).then(() => {
+          // After That Event Completes, GET Current Season Value
+          this.getCurrentSeason();
+        })
       },
 
       // GET Current Season
       getCurrentSeason() 
       {
-
         fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.APIKey}`).then((response) => {
           return response.json();
         }).then((myJson) => { 
@@ -96,7 +65,6 @@ export default {
           // After That Event Completes, GET Current Game Object
           this.getPsuSchedule()
         })
-
       },
       getPsuSchedule () {
         fetch(`${this.URL}/v3/cfb/scores/json/Games/${2018}?key=${this.APIKey}`).then((response) => {

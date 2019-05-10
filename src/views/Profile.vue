@@ -56,9 +56,7 @@ import firebase from 'firebase';
 export default {
   data() {
     return {
-      displayName: '',
-      users: [],
-      user: [],
+      user: this.$store.state.sessionUser.User,
       actions: [
         {
           title: 'Rankings',
@@ -69,22 +67,15 @@ export default {
   },
   methods : {
     logout(index) {
-      firebase.auth().signOut().then(function() {
-        // Sign-out successful.
-      }).catch(function(error) {
-        // An error happened.
+      firebase.auth().signOut().then(() => {
+        window.location.reload();
+      }).catch((error) => {
+        swal('Cannot signout at this time.',error,'error')
       });
-      this.$store.commit('tabbar/set', 0);
     },
   },
   created() {
-    firebase.auth().onAuthStateChanged((user) => {
-      if(user){
-        this.user = user
-      } else {
-        // No Auth
-      }
-    });
+    
   }
   
 };

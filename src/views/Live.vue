@@ -167,7 +167,7 @@ export default {
       
     },
     organizeRanks (num) {
-      this.resultsArray.sort(function(a, b) {
+      this.resultsArray.sort((a, b) => {
         let a1;
         let b1;
         switch(num) {
@@ -360,8 +360,9 @@ export default {
 
     },
     sortRankings () {
+      const NUM_OF_RANKING_CATEGORIES = 5;
       // Cycle through all major delta categories psuscore,oppoenntscore,totaldelta,spreaddelta
-      for(let i =1; i < 5;i++) {
+      for(let i =1; i < NUM_OF_RANKING_CATEGORIES;i++) {
         this.organizeRanks(i);
         this.assignRanks(i);
       }

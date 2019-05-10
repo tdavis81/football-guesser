@@ -84,6 +84,8 @@ export default {
   name: 'login',
   data () {
     return {
+      //APIKey: 'aece277790af4bbdaec038cb6d0ad4d5',
+      APIKey: 'ea5cda3e18c544db85a09ce8a175075b',
       user: {
         email: '',
         password: '',
@@ -193,13 +195,6 @@ export default {
 
     },
   },
-  checkIfBeforeSeason () {
-    fetch(`https://api.sportsdata.io/v3/cfb/scores/json/CurrentWeek?key=${aece277790af4bbdaec038cb6d0ad4d5}`).then((response) => {
-      return response.text()
-    }).then((myJson) => {
-      this.isBeforeWeekOne = myJson === '' || myJson === null ? true : false
-    })
-  },
   created () {
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
@@ -207,8 +202,12 @@ export default {
         this.$emit('loginCompleted', true)
         this.modalVisible = false;
       } else {
-        this.checkIfBeforeSeason();
-        this.modalVisible = true;
+        fetch(`https://api.sportsdata.io/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
+          return response.text()
+        }).then((myJson) => {
+          this.isBeforeWeekOne = myJson === '' || myJson === null ? true : false
+           this.modalVisible = true;
+        })
       }
     });
 
