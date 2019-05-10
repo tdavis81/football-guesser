@@ -1,6 +1,7 @@
 <template>
   <v-ons-page>
     
+    <!-- Rankings Table -->
     <v-ons-list>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <table class="table table-striped table-dark">
@@ -27,6 +28,8 @@
 
 
     <v-ons-list>
+
+      <!-- Previous Scores Section -->
       <v-ons-list-header>Previous Scores</v-ons-list-header>
       <ons-list-item>
         <div class="center">
@@ -38,6 +41,7 @@
         </div>
       </ons-list-item>
 
+      <!-- Session User Submitted Penn State Score -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
@@ -53,6 +57,7 @@
         </label>
       </v-ons-list-item>
 
+      <!-- User Session Submitted Opponent -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
@@ -68,6 +73,7 @@
         </label>
       </v-ons-list-item>
 
+      <!-- Session User Submitted Winner -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
@@ -83,6 +89,7 @@
         </label>
       </v-ons-list-item>
 
+      <!-- Live/Final Penn State Score -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
@@ -98,6 +105,7 @@
         </label>
       </v-ons-list-item>
 
+      <!-- Live/Final Opponent Score -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
@@ -113,6 +121,7 @@
         </label>
       </v-ons-list-item>
 
+      <!-- Live/Final Winner -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-store" class="list-item__icon"></v-ons-icon>
@@ -128,27 +137,22 @@
         </label>
       </v-ons-list-item>
 
-
     </v-ons-list>
-
-
   </v-ons-page>
 </template>
 
 <script>
-import firebase from 'firebase';
-import router from '@/router'
+// Reference To Sweet Alerts Dialog Boxes
 import swal from 'sweetalert';
+// Reference To Firebase Database Config - User This Get Make Calls To Firebase For User Data
 import db from '@/db';
+// Reference To Firebase Auth
+import firebase from 'firebase';
 
 export default {
-  
   name: "Rankings",
   data() {
     return {
-      APIKey:'aece277790af4bbdaec038cb6d0ad4d5', // UPDATE TO ACCOUNT APIKEY
-      URL:'https://api.sportsdata.io',
-      DEBUG : true,
       user: [],
       psuScore: '',
       opponentScore: '',
@@ -159,9 +163,10 @@ export default {
       selectedWeek: '', 
       firebaseUserData: [],
       firebaseUserRankings: [],
-      currentWeek: '',
-      currentSeason: '',
-      psuSchedule: [],
+      currentWeek: this.$store.state.currentWeekNumber.Week,
+      currentSeason: this.$store.state.currentSeason.Season,
+      currentGameObject: this.$store.state.currentGameObject.Game,
+      psuSchedule: this.$store.state.psuSchedule.Schedule,
       rankings: [],
       players: [],
       finalRankings: []
@@ -172,7 +177,7 @@ export default {
        
       // When User Changes Previous Scores DropDown Get There Data They Entered For That Week 
       for(let i =0; i< this.firebaseUserData.length;i++) { 
-       
+        
         if(this.firebaseUserData[i].Week === this.selectedWeek && this.firebaseUserData[i].UserID == this.user.uid) { 
           this.psuScore = this.firebaseUserData[i].PsuScore;
           this.opponentScore = this.firebaseUserData[i].OpponentScore;
@@ -202,8 +207,6 @@ export default {
           // If Players Datas week == current week add to playersdata array
           this.firebaseUserData.push(doc.data())
         })
-      }).then(() =>{
-        this.getCurrentWeek()  
       })
     },
     getFirebasePlayerRankings () {
@@ -229,7 +232,7 @@ export default {
             if (this.firebaseUserRankings[i-1].Points === this.firebaseUserRankings[i].Points) {
               this.firebaseUserRankings[i].Standings = this.firebaseUserRankings[i-1].Standings;
             } else {
-              this.firebaseUserRankings[i].Standings = i+1
+              this.firebaseUserRankings[i].Standings = i+1;
             }
           } else {
             this.firebaseUserRankings[i].Standings = i+1;
@@ -237,69 +240,13 @@ export default {
         }
       })
     },
-    // GET Current Week Of Season
-    getCurrentWeek () 
-    {
-      
-      if (this.DEBUG)
-      {
-        this.currentWeek = 1
-        this.getCurrentSeason()
-      }
-      else 
-      {
-        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
-          return response.json();
-        }).then((myJson) => { 
-          // Set Variable to Week Value - Returns EX. 1
-          this.currentWeek = myJson
-          // Commit Current Week To Store
-          this.$store.commit('currentWeekNumber/set', myJson)
-        }).then(() => {
-          // After That Event Completes, GET Current Season Value
-          this.getCurrentSeason()
-        })
-      }
-
-    },
-
-    // GET Current Season
-    getCurrentSeason() 
-    {
-
-      fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.APIKey}`).then((response) => {
-        return response.json();
-      }).then((myJson) => { 
-        // Set Variable to Season Value - Returns EX. 2019
-        this.currentSeason = myJson
-        // Commit Current Year To Store
-        this.$store.commit('currentYear/set', myJson)
-      }).then(() => {
-        // After That Event Completes, GET Current Game Object
-        this.getPsuSchedule()
-      })
-
-    },
-    getPsuSchedule () {
-      fetch(`${this.URL}/v3/cfb/scores/json/Games/${2018}?key=${this.APIKey}`).then((response) => {
-        return response.json();
-      }).then((myJson) => { 
-        myJson.forEach((element) => {
-          if(element.HomeTeam === "PENNST" || element.AwayTeam === "PENNST") {
-            this.psuSchedule.push(element);
-          }
-        });
-      }).then(()=> {
-        this.getPlayerData()
-      })
-
-    }
+    
   },
   created() {
     firebase.auth().onAuthStateChanged((user) => {
-      this.user = user
-      // this.getCurrentWeek()
-      // this.getFirebasePlayerRankings()
+      this.user = user;
+      this.getFirebasePlayerRankings();
+      this.getPlayerData();
     });
   }
 }

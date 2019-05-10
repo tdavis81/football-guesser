@@ -46,19 +46,90 @@ export default {
       }
     },
     
-    psuCurrentWeek: {
+    // Current Week of Season EX : 1
+    currentWeekNumber: {
       strict: true,
       namespaced: true,
       state: {
-        currentGameWeek: ''
+        Week: 0
       },
       mutations: {
-        set(state, currentGameWeek) {
-          state.currentGameWeek = currentGameWeek;
+        set(state, Week) {
+          state.Week = Week;
+        }
+      }
+    },
+    
+    // Current Season EX : 2019
+    currentSeason: {
+      strict: true,
+      namespaced: true,
+      state: {
+        Season: 0
+      },
+      mutations: {
+        set(state, Season) {
+          state.Season = Season;
         }
       }
     },
 
+    // Current Game Object
+    currentGameObject: {
+      strict: true,
+      namespaced: true,
+      state: {
+        Game: []
+      },
+      mutations: {
+        set(state, Game) {
+          state.Game = Game;
+        }
+      }
+    },
+
+    // Current Game Opponents
+    currentGameOpponents: {
+      strict: true,
+      namespaced: true,
+      state: {
+        Opponents: []
+      },
+      mutations: {
+        set(state, Opponents) {
+          state.Opponents = Opponents;
+        }
+      }
+    },
+    
+    // Current Session User
+    sessionUser: {
+      strict: true,
+      namespaced: true,
+      state: {
+        User: []
+      },
+      mutations: {
+        set(state, User) {
+          state.User = User;
+        }
+      }
+    },
+    
+    psuSchedule: {
+      strict: true,
+      namespaced: true,
+      state: {
+        Schedule: []
+      },
+      mutations: {
+        set(state, Schedule) {
+          state.Schedule = Schedule;
+        }
+      }
+    },
+    
+    /*
     psuSchedule: {
       strict: true,
       namespaced: true,
@@ -72,18 +143,6 @@ export default {
       }
     },
 
-    sessionUser: {
-      strict: true,
-      namespaced: true,
-      state: {
-        user: ''
-      },
-      mutations: {
-        set(state, user) {
-          state.user = user;
-        }
-      }
-    },
 
     liveScores: {
       strict: true,
@@ -98,45 +157,7 @@ export default {
       }
     },
 
-    currentYear: {
-      strict: true,
-      namespaced: true,
-      state: {
-        currentYear: ''
-      },
-      mutations: {
-        set(state, currentYear) {
-          state.currentYear = currentYear;
-        }
-      }
-    },
-
-    currentWeekNumber: {
-      strict: true,
-      namespaced: true,
-      state: {
-        weekNumber: []
-      },
-      mutations: {
-        set(state, weekNumber) {
-          state.weekNumber = weekNumber;
-        }
-      }
-    },
-
-    currentGameObject: {
-      strict: true,
-      namespaced: true,
-      state: {
-        gameObject: []
-      },
-      mutations: {
-        set(state, gameObject) {
-          state.gameObject = gameObject;
-        }
-      }
-    },
-
+    */
     tabbar: {
       strict: true,
       namespaced: true,

@@ -4,6 +4,7 @@ import 'onsenui/css/onsen-css-components.css';
 
 import Vue from 'vue'
 import router from './router'
+import App from './App.vue'
 import storeLike from './store.js';
 import './registerServiceWorker'
 import VueOnsen from 'vue-onsenui';
@@ -48,5 +49,5 @@ new Vue({
     }
 
   },
-  render: h => h(AppNavigator),
+  render: h => h(App), //AppNavigator
 }).$mount('#app')

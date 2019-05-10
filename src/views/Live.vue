@@ -1,5 +1,5 @@
 <template>
-  <v-ons-page :key="componentKey">
+  <v-ons-page>
 
     <!-- Create Simple Table That Organizes Live Rankings Of Users Based On Point Spread -->
     <v-ons-list>
@@ -39,12 +39,9 @@ export default {
   name: "Live",
   data () {
     return {
-      APIKey:'aece277790af4bbdaec038cb6d0ad4d5', // UPDATE TO ACCOUNT APIKEY
-      URL:'https://api.sportsdata.io',
-      DEBUG: true,
-      currentSeason: '',
-      currentWeek: 0,
-      currentGameObject: {},
+      currentWeek: this.$store.state.currentWeekNumber.Week,
+      currentSeason: this.$store.state.currentSeason.Season,
+      currentGameObject: this.$store.state.currentGameObject.Game,
       firebaseUserData: [], 
       liveRankingResults: [],
       resultsArray: [],
@@ -71,7 +68,6 @@ export default {
         total: 0,
         spread: 0,
       },
-      componentKey: 0,
       completeFinalList: []
     }
   },
@@ -439,68 +435,10 @@ export default {
         this.saveToFireBase()
       })
     },
-    // GET Current Week Of Season
-    getCurrentWeek () 
-    {
-      if (this.DEBUG)
-      {
-        this.currentWeek = 1
-        this.getCurrentSeason()
-      }
-      else 
-      {
-        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
-          return response.json();
-        }).then((myJson) => { 
-          // Set Variable to Week Value - Returns EX. 1
-          this.currentWeek = myJson
-        }).then(() => {
-          // After That Event Completes, GET Current Season Value
-          this.getCurrentSeason()
-        })
-      }
-
-    },
-
-    // GET Current Season
-    getCurrentSeason() 
-    {
-
-      fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.APIKey}`).then((response) => {
-        return response.json();
-      }).then((myJson) => { 
-        // Set Variable to Season Value - Returns EX. 2019
-        this.currentSeason = myJson
-      }).then(() => {
-        // After That Event Completes, GET Current Game Object
-        this.getCurrentGame()
-      })
-
-    },
-    
-    // GET Current Game Object
-    getCurrentGame() 
-    { 
-      //this.currentSeason
-      fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${2018}/${this.currentWeek}?key=${this.APIKey}`).then((response) => {
-        return response.json();
-      }).then((myJson) => {
-        // Find PENNST Game Via Returned JSON Array
-        let psuGame = myJson.find(x => x.HomeTeam === "PENNST" || x.AwayTeam === "PENNST")
-        // Set Variable to PSU Current Game Object
-        this.currentGameObject = psuGame
-      }).then(() => {
-        // Get Firebase player Data this.firebaseUserData
-        this.getPlayerData();
-      }).then(() => {
-        
-      })
-    }
   },
   created () 
   {
-    //this.getCurrentWeek()
-
+    this.getPlayerData();
   }
 }
 

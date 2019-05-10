@@ -1,22 +1,75 @@
 <template>
-  <div class="login" style="margin-top:5%">
-      <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
-      <div class="row">
-          <div class="col-md-4"></div>
-          <div class="col-md-4">
-              <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
-              <input type="password" v-model="user.password" class="fadeIn third" placeholder="Password" required>
-              <div class="row" style="margin-top:10px">
-                  <div class="col-sm-6">
-                      <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Login" @click="checkUser()">
-                  </div>
-                  <div class="col-sm-6">
-                      <a href="#" style="color:white">Forgot your password?</a>
-                  </div>
-              </div>
-          </div>
-          <div class="col-md-4"></div>
+  <div class="login">
+
+    <!-- Login Modal -->
+    <v-ons-modal :visible="modalVisible">
+      <div  class="login" style="margin-top:5%">
+        <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
+                <input type="password" v-model="user.password" class="fadeIn third" placeholder="Password" required>
+                <div class="row" style="margin-top:10px">
+                    <div class="col-sm-6">
+                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Login" @click="checkUser()">
+                    </div>
+                    <div class="col-sm-6">
+                        <a href="#" @click="showForgotPasswordPage()" style="color:white">Forgot your password?</a>
+                    </div>
+                    <div class="col-sm-6" style="margin-top:10px">
+                      <a v-if="isBeforeWeekOne" @click="showCreateAccountPage()" href="#" style="color:white">Create Account!</a>
+                    </div>
+                </div>
+                <p v-if="showError" style="color:red">{{errorMsg}}</p>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
       </div>
+    </v-ons-modal>
+    
+    <!-- Forgot Password -->
+    <v-ons-modal :visible="forgotPasswordVisible">
+      <div class="login">
+        <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
+                <div class="row" style="margin-top:10px">
+                    <div class="col-sm-6">
+                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Reset" @click="resetPassword()">
+                    </div>
+                </div>
+                <p v-if="showError" style="color:red">{{errorMsg}}</p>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+      </div>
+    </v-ons-modal>
+
+    <!-- Show Create Account -->
+    <v-ons-modal :visible="createAccountVisible">
+      <div class="login">
+        <img src="@/assets/ff.png" class="headerImage" style="margin-bottom:10%"/>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
+                <input type="password" v-model="user.password" class="fadeIn third" placeholder="Password" required>
+                <input type="text" v-model="user.displayName" class="fadeIn fourth" placeholder="Display Name" required>
+                <div class="row" style="margin-top:10px">
+                    <div class="col-sm-6">
+                        <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Create" @click="createAccount()">
+                    </div>
+                </div>
+                <p v-if="showError" style="color:red">{{errorMsg}}</p>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+      </div>
+    </v-ons-modal>
+
   </div>
 </template>
 
@@ -33,25 +86,135 @@ export default {
     return {
       user: {
         email: '',
-        password: ''
-      }
+        password: '',
+        displayName: '',
+        userId: ''
+      },
+      isBeforeWeekOne: true,
+      modalVisible: true,
+      forgotPasswordVisible: false,
+      createAccountVisible: false,
+      showError: false,
+      errorMsg: '',
     }
   },
   methods: {
-    checkUser() {
-        firebase.auth().signInWithEmailAndPassword(this.user.email,this.user.password).then(
-          () => {
-            router.push({ path: '/' })
-          },
-          () => {
-            swal("Incorrect Credentials","Email or Password is incorrect.","error")
-            router.push({ path: '/login' })
-          }
-        )
-    }
+    // Display Login Modal
+    showForgotPasswordPage () {
+      this.modalVisible = false;
+      this.forgotPasswordVisible = true;
+      this.createAccountVisible = false
+    },
+    resetPassword () {
+      let auth = firebase.auth();
+
+      auth.sendPasswordResetEmail(this.user.email).then(() => {
+        this.showError = false;
+        this.modalVisible = true;
+        this.forgotPasswordVisible = false;
+        this.createAccountVisible = false
+      }).catch((error) => {
+        this.showError = true;
+        this.errorMsg = 'Either the email doesnt exist or there is a server issue';
+      });
+    },
+    // Display Login Modal
+    showCreateAccountPage () {
+      this.user.email = '',
+      this.user.password = '',
+      this.user.displayName = '',
+      this.modalVisible = false;
+      this.forgotPasswordVisible = false;
+      this.createAccountVisible = true
+    },
+    createAccount () {
+      let displayName = this.user.displayName
+      /// chheck if null , check if display name exists already/ login user hide models
+      if (this.user.email === '' || this.user.email === null || this.user.password === '' || this.user.password === null || this.user.displayName === '' || this.user.displayName === null) {
+        this.showError = true;
+        this.errorMsg = 'Fields cannot be blank.';
+      }
+      else {
+        this.showError = false;
+        firebase.auth().createUserWithEmailAndPassword(this.user.email, this.user.password)
+        .then(()=> {
+          firebase.auth().signInWithEmailAndPassword(this.user.email,this.user.password)
+          .then(()=> {
+            firebase.auth().currentUser.updateProfile({
+              displayName: displayName
+            }).then(()=> {
+              let user = firebase.auth().currentUser;
+              user.sendEmailVerification().then(() => {
+                // Login User and hide Models
+                this.modalVisible = false;
+                this.forgotPasswordVisible = false;
+                this.createAccountVisible = false;
+              }).catch((error) => {
+                this.showError = true;
+                this.errorMsg = error;
+              });
+            }).catch((error) => {
+              this.showError = true;
+              this.errorMsg = error;
+            });
+          }).catch((error) => {
+            this.showError = true;
+            this.errorMsg = error;
+          })
+        })
+        .catch((error) => {
+          this.showError = true;
+          this.errorMsg = error;
+        })
+      }
+      
+    },  
+    showModal() 
+    {
+      this.modalVisible = true;
+    },
+
+    // Check User Credentials On Login Button In Modal
+    checkUser() 
+    {
+
+      firebase.auth().signInWithEmailAndPassword(this.user.email, this.user.password)
+      .then((user) => {
+        this.showError = false;
+        this.modalVisible = false;
+        this.$store.commit('sessionUser/set', user)
+        this.$emit('loginCompleted', true)
+      })
+      .catch((error) => {
+        this.errorMsg = error;
+        this.showError = true;
+        this.modalVisible = true;
+      });
+
+    },
   },
-  components: {
-    //HelloWorld
+  checkIfBeforeSeason () {
+    fetch(`https://api.sportsdata.io/v3/cfb/scores/json/CurrentWeek?key=${aece277790af4bbdaec038cb6d0ad4d5}`).then((response) => {
+      return response.text()
+    }).then((myJson) => {
+      this.isBeforeWeekOne = myJson === '' || myJson === null ? true : false
+    })
+  },
+  created () {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        this.$store.commit('sessionUser/set', user)
+        this.$emit('loginCompleted', true)
+        this.modalVisible = false;
+      } else {
+        this.checkIfBeforeSeason();
+        this.modalVisible = true;
+      }
+    });
+
+
+     
+
   }
 }
 </script>
