@@ -41,12 +41,10 @@ export default {
       topPosition: 0,
       tabs: [
         {
-          label: this.md ? null : 'Home',
+          label: 'Home',
           icon: 'ion-home, material:md-home',
           page: Home,
           theme: red,
-          style: this.md ? { maxWidth: '60px' } : {},
-          top: -105 // Toolbar + Tabbar heights
         },
         {
           label: 'Live',

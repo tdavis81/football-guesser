@@ -22,14 +22,21 @@ export default {
       return {
         hasDataLoaded:false,
         //APIKey:'aece277790af4bbdaec038cb6d0ad4d5',
-        APIKey: 'ea5cda3e18c544db85a09ce8a175075b',
+        //APIKey: 'ea5cda3e18c544db85a09ce8a175075b',
         URL:'https://api.sportsdata.io',
         currentGame: {},
         currentWeek: 0,
+        currentSeason: 0,
         opponents: [],
         loginCompleted: false,
         sessionIsNotActive: false,
-        psuGames: []
+        psuGames: [],
+        user: {
+          email: '',
+          displayName: '',
+          userId: '',
+          apiKey: '',
+        },
       }
     },
     methods: {
@@ -40,7 +47,7 @@ export default {
       // GET Current Week Of Season
       getCurrentWeek () 
       {
-        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
+        fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.user.apiKey}`).then((response) => {
           return response.text();
         }).then((myJson) => {
           this.currentWeek = myJson === '' || myJson === null ? 1 : JSON.parse(myJson);
@@ -56,10 +63,11 @@ export default {
       // GET Current Season
       getCurrentSeason() 
       {
-        fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.APIKey}`).then((response) => {
+        fetch(`${this.URL}/v3/cfb/scores/json/CurrentSeason?key=${this.user.apiKey}`).then((response) => {
           return response.json();
         }).then((myJson) => { 
           // Commit Current Year To Store
+          this.currentSeason = myJson;
           this.$store.commit('currentSeason/set', myJson)
         }).then(() => {
           // After That Event Completes, GET Current Game Object
@@ -67,7 +75,7 @@ export default {
         })
       },
       getPsuSchedule () {
-        fetch(`${this.URL}/v3/cfb/scores/json/Games/${2018}?key=${this.APIKey}`).then((response) => {
+        fetch(`${this.URL}/v3/cfb/scores/json/Games/${this.currentSeason}?key=${this.user.apiKey}`).then((response) => {
           return response.json();
         }).then((myJson) => {
           myJson.forEach((el) => {
@@ -104,7 +112,6 @@ export default {
         this.currentGame = psuGame;
         // Commit Current Game Object To Store
         this.$store.commit('currentGameObject/set', psuGame)
-
       }
     },
     created () {
@@ -116,6 +123,10 @@ export default {
       
       firebase.auth().onAuthStateChanged((user) => {
         if (user) {
+          this.user.displayName = user.displayName;
+          this.user.email = user.email;
+          this.user.userId = user.uid;
+          this.user.apiKey = user.photoURL;
           this.$store.commit('sessionUser/set', user)
           this.sessionIsNotActive = false
           this.loginCompleted = true

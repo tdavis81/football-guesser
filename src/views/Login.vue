@@ -42,6 +42,7 @@
                     </div>
                 </div>
                 <p v-if="showError" style="color:red">{{errorMsg}}</p>
+                <v-ons-button  @click="forgotPasswordVisible = false;modalVisible = true" modifier="small" class="button-margin" style="background-color:red">Close</v-ons-button>
             </div>
             <div class="col-md-4"></div>
         </div>
@@ -55,15 +56,17 @@
         <div class="row">
             <div class="col-md-4"></div>
             <div class="col-md-4">
-                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Email" required>
-                <input type="password" v-model="user.password" class="fadeIn third" placeholder="Password" required>
-                <input type="text" v-model="user.displayName" class="fadeIn fourth" placeholder="Display Name" required>
+                <input type="email" v-model="user.email" class="fadeIn second" placeholder="Enter Email" required>
+                <input type="password" v-model="user.password" class="fadeIn third" placeholder="Enter Password" required>
+                <input type="text" v-model="user.displayName" class="fadeIn fourth" placeholder="EnterDisplay Name" required>
+                <input type="text" v-model="user.apiKey" class="fadeIn fourth" placeholder="Enter API Key" required>
                 <div class="row" style="margin-top:10px">
                     <div class="col-sm-6">
                         <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Create" @click="createAccount()">
                     </div>
                 </div>
                 <p v-if="showError" style="color:red">{{errorMsg}}</p>
+                <v-ons-button  @click="createAccountVisible = false;modalVisible = true" modifier="small" class="button-margin" style="background-color:red">Close</v-ons-button>
             </div>
             <div class="col-md-4"></div>
         </div>
@@ -84,13 +87,14 @@ export default {
   name: 'login',
   data () {
     return {
-      //APIKey: 'aece277790af4bbdaec038cb6d0ad4d5',
+      APIKeyBackup: 'aece277790af4bbdaec038cb6d0ad4d5',
       APIKey: 'ea5cda3e18c544db85a09ce8a175075b',
       user: {
         email: '',
         password: '',
         displayName: '',
-        userId: ''
+        userId: '',
+        apiKey: '',
       },
       isBeforeWeekOne: true,
       modalVisible: true,
@@ -107,6 +111,7 @@ export default {
       this.forgotPasswordVisible = true;
       this.createAccountVisible = false
     },
+    // Reset Password Function
     resetPassword () {
       let auth = firebase.auth();
 
@@ -129,9 +134,12 @@ export default {
       this.forgotPasswordVisible = false;
       this.createAccountVisible = true
     },
+    // Create New Account
     createAccount () {
-      let displayName = this.user.displayName
-      /// chheck if null , check if display name exists already/ login user hide models
+      let displayName = this.user.displayName;
+      let apiKey = this.user.apiKey;
+
+      // check if null , check if display name exists already/ login user hide models
       if (this.user.email === '' || this.user.email === null || this.user.password === '' || this.user.password === null || this.user.displayName === '' || this.user.displayName === null) {
         this.showError = true;
         this.errorMsg = 'Fields cannot be blank.';
@@ -143,7 +151,8 @@ export default {
           firebase.auth().signInWithEmailAndPassword(this.user.email,this.user.password)
           .then(()=> {
             firebase.auth().currentUser.updateProfile({
-              displayName: displayName
+              displayName: displayName,
+              photoURL: apiKey
             }).then(()=> {
               let user = firebase.auth().currentUser;
               user.sendEmailVerification().then(() => {
@@ -202,6 +211,7 @@ export default {
         this.$emit('loginCompleted', true)
         this.modalVisible = false;
       } else {
+        // Check if before week 1, if so display sign up button
         fetch(`https://api.sportsdata.io/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
           return response.text()
         }).then((myJson) => {
@@ -210,9 +220,6 @@ export default {
         })
       }
     });
-
-
-     
 
   }
 }

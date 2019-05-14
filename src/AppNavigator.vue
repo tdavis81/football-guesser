@@ -1,9 +1,7 @@
 <template>
   <v-ons-navigator swipeable swipe-target-width="50px"
     :page-stack="pageStack"
-    :pop-page="storePop"
     :options="options"
-    @postpush="showPopTip"
     :class="{ 'border-radius': borderRadius }"
   ></v-ons-navigator>
 </template>
@@ -17,7 +15,7 @@ export default {
   },
   data() {
     return { 
-      shutUp: this.md
+    
     }
   },
   computed: {
@@ -32,16 +30,7 @@ export default {
     }
   },
   methods: {
-    storePop() {
-      this.$store.commit('navigator/pop');
-    },
-    showPopTip() {
-      !this.shutUp && this.$ons.notification.toast({
-        message: 'Try swipe-to-pop from left side!',
-        buttonLabel: 'Shut up!',
-        timeout: 2000
-      }).then(i => this.shutUp = i === 0);
-    }
+    
   },
   created () {
    

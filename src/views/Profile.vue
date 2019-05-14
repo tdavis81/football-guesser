@@ -1,9 +1,9 @@
 <template>
   <v-ons-page>
     <v-ons-list style="text-align:center">
+      
       <v-ons-icon style="font-size:115px" icon="md-face" class="list-item__icon"></v-ons-icon>
       <v-ons-list-header>User Information</v-ons-list-header>
-
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>

@@ -19,7 +19,7 @@
               <td>{{item.player}}</td>
               <td>{{item.avgRank}}</td>
               <td>{{item.finalNumRank}}</td>
-              <td>{{item.awardedPoints}}</td>
+              <td>{{parseFloat(item.awardedPoints).toFixed(2)}}</td>
             </tr>
           </tbody>
         </table>
@@ -360,9 +360,9 @@ export default {
 
     },
     sortRankings () {
-      const NUM_OF_RANKING_CATEGORIES = 5;
+      const NUM_OF_RANKING_CATEGORIES = 4;
       // Cycle through all major delta categories psuscore,oppoenntscore,totaldelta,spreaddelta
-      for(let i =1; i < NUM_OF_RANKING_CATEGORIES;i++) {
+      for(let i =1; i < NUM_OF_RANKING_CATEGORIES +1;i++) {
         this.organizeRanks(i);
         this.assignRanks(i);
       }
@@ -376,7 +376,7 @@ export default {
       // Organize By Final Average this.resultsArray Now Organized Lowest AvgRank - Highest AvgRank
       this.organizeRanks(5);
       this.assignRanks(5)
-
+    
       this.getWinnerLoseRank();
       this.getBonusPoint();
       this.generateFinalRankings();
@@ -439,7 +439,16 @@ export default {
   },
   created () 
   {
-    this.getPlayerData();
+    // Get Current Time in format 2019-01-15T15:00:00
+    const currentTime = moment().format('YYYY-MM-DDTHH:mm:ss')
+    // Convert Current Game Objects DateTime To DateTime Of Game Start Time
+    const gameStartDate = moment(this.currentGameObject.DateTime).format('YYYY-MM-DDTHH:mm:ss')
+    // Check If Current Time Is Greater Than or Equal To Game Start Time If True Lock Save Btn & Inputs
+    if ( currentTime >= gameStartDate ) 
+    {
+      this.getPlayerData();
+    }
+   
   }
 }
 

@@ -11,11 +11,11 @@
       </ons-list-item>
 
       <!-- Penn State Score Input box -->
-      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''" style="width:100%">
         <div class="left">
           <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
         </div>
-        <label class="center" style="width:100%">
+        <label class="center">
           <v-ons-input :disabled="hasSubmitted"  float maxlength="20"
             placeholder="PENNST Score"
             v-model="psuScore"
@@ -30,8 +30,8 @@
         <div class="left">
           <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
-        <label class="center" style="width:100%">
-          <v-ons-input :disabled="hasSubmitted" float maxlength="20"
+        <label class="center">
+          <v-ons-input :disabled="hasSubmitted" float maxlength="70"
             placeholder="Opponent Score"
             v-model="opponentScore"
             type="number"
@@ -131,7 +131,7 @@ export default {
       // Convert Current Game Objects DateTime To DateTime Of Game Start Time
       const gameStartDate = moment(this.currentGame.DateTime).format('YYYY-MM-DDTHH:mm:ss')
 
-      // Check If Current Time Is Greater Than or Equal To Game Start Time If YES Lock Save Btn & Inputs
+      // Check If Current Time Is Greater Than or Equal To Game Start Time If True Lock Save Btn & Inputs
       if ( currentTime >= gameStartDate ) 
       {
         // Hide Save Button Once User Has Submitted There Picks
