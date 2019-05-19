@@ -6,7 +6,6 @@ import Vue from 'vue'
 import router from './router'
 import App from './App.vue'
 import storeLike from './store.js';
-import './registerServiceWorker'
 import VueOnsen from 'vue-onsenui';
 import CustomToolbar from './partials/CustomToolbar.vue';
 import Vuex from 'vuex';

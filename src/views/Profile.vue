@@ -56,7 +56,7 @@ import firebase from 'firebase';
 export default {
   data() {
     return {
-      user: this.$store.state.sessionUser.User,
+      user: '',
       actions: [
         {
           title: 'Rankings',
@@ -75,7 +75,7 @@ export default {
     },
   },
   created() {
-    
+    this.user = firebase.auth().currentUser;
   }
   
 };

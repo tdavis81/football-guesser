@@ -42,7 +42,14 @@ export default {
     methods: {
       onChildUpdate (isCompleted) {
         this.loginCompleted = isCompleted;
-        this.getCurrentWeek();
+        let user = firebase.auth().currentUser;
+        if (user) {
+          this.user.displayName = user.displayName;
+          this.user.email = user.email;
+          this.user.userId = user.uid;
+          this.user.apiKey = user.photoURL;
+          this.getCurrentWeek()
+        }
       },
       // GET Current Week Of Season
       getCurrentWeek () 
@@ -121,20 +128,20 @@ export default {
          Once that API Call Completes GET the Current Game Object 
       */
       
-      firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-          this.user.displayName = user.displayName;
-          this.user.email = user.email;
-          this.user.userId = user.uid;
-          this.user.apiKey = user.photoURL;
-          this.$store.commit('sessionUser/set', user)
-          this.sessionIsNotActive = false
-          this.loginCompleted = true
-          this.getCurrentWeek()
-        } else {
-          this.sessionIsNotActive = true
-        }
-      });
+      let user = firebase.auth().currentUser;
+      if (user) {
+        this.user.displayName = user.displayName;
+        this.user.email = user.email;
+        this.user.userId = user.uid;
+        this.user.apiKey = user.photoURL;
+        this.$store.commit('sessionUser/set', user)
+        this.sessionIsNotActive = false
+        this.loginCompleted = true
+        this.getCurrentWeek()
+      } else {
+        this.sessionIsNotActive = true
+      }
+      
       
     },
     components: {

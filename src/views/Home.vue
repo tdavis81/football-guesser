@@ -90,8 +90,9 @@ export default {
       currentSeason: this.$store.state.currentSeason.Season,
       currentGame: this.$store.state.currentGameObject.Game,
       opponents:  this.$store.state.currentGameOpponents.Opponents,
-      user: this.$store.state.sessionUser.User,
-      hasSubmitted:false
+      user: '',
+      hasSubmitted:false,
+      hourStartAlert: '1 Hour until game time, please submit your picks.'
     }
   },
   methods: 
@@ -137,6 +138,7 @@ export default {
         // Hide Save Button Once User Has Submitted There Picks
         this.hasSubmitted = true; 
       }
+
     },
     getUserCurrentWeekScore () {
       db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
@@ -156,6 +158,7 @@ export default {
   },
   created () 
   {
+    this.user = firebase.auth().currentUser;
     this.checkIfGameStarted();
     this.getUserCurrentWeekScore()
   }

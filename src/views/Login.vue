@@ -58,8 +58,8 @@
             <div class="col-md-4">
                 <input type="email" v-model="user.email" class="fadeIn second" placeholder="Enter Email" required>
                 <input type="password" v-model="user.password" class="fadeIn third" placeholder="Enter Password" required>
-                <input type="text" v-model="user.displayName" class="fadeIn fourth" placeholder="EnterDisplay Name" required>
-                <input type="text" v-model="user.apiKey" class="fadeIn fourth" placeholder="Enter API Key" required>
+                <input type="text" v-model="user.displayName" class="fadeIn fourth" placeholder="Enter Display Name" required>
+                <input type="text" v-model="user.apiKey" class="fadeIn fourth" placeholder="Enter Sports Data API Key" required>
                 <div class="row" style="margin-top:10px">
                     <div class="col-sm-6">
                         <input style="width:85%;text-align:center" type="submit" class="fadeIn fourth" value="Create" @click="createAccount()">
@@ -157,9 +157,12 @@ export default {
               let user = firebase.auth().currentUser;
               user.sendEmailVerification().then(() => {
                 // Login User and hide Models
+                
                 this.modalVisible = false;
                 this.forgotPasswordVisible = false;
                 this.createAccountVisible = false;
+                this.$store.commit('sessionUser/set', user)
+                this.$emit('loginCompleted', true)
               }).catch((error) => {
                 this.showError = true;
                 this.errorMsg = error;
@@ -205,21 +208,21 @@ export default {
     },
   },
   created () {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        this.$store.commit('sessionUser/set', user)
-        this.$emit('loginCompleted', true)
-        this.modalVisible = false;
-      } else {
-        // Check if before week 1, if so display sign up button
-        fetch(`https://api.sportsdata.io/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
-          return response.text()
-        }).then((myJson) => {
-          this.isBeforeWeekOne = myJson === '' || myJson === null ? true : false
-           this.modalVisible = true;
-        })
-      }
-    });
+    let user = firebase.auth().currentUser;
+    if (user) {
+      this.$store.commit('sessionUser/set', user)
+      this.$emit('loginCompleted', true)
+      this.modalVisible = false;
+    } else {
+      // Check if before week 1, if so display sign up button
+      fetch(`https://api.sportsdata.io/v3/cfb/scores/json/CurrentWeek?key=${this.APIKey}`).then((response) => {
+        return response.text()
+      }).then((myJson) => {
+        this.isBeforeWeekOne = myJson === '' || myJson === null ? true : false
+        this.modalVisible = true;
+      })
+    }
+    
 
   }
 }

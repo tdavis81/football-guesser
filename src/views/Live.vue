@@ -26,6 +26,108 @@
       </v-ons-list-item>
     </v-ons-list>
 
+    <v-ons-list>
+      <v-ons-list-header>Live Data</v-ons-list-header>
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+        <table class="table table-striped table-dark">
+          <thead style="text-align:center">
+            <tr>
+              <th>PSU</th>
+              <th>Opp</th>
+              <th>Winning</th>
+              <th>Total</th>
+              <th>Spread</th>
+            </tr>
+          </thead>
+          <tbody style="text-align:center">
+            <tr>
+              <td>{{liveScoringObject.psuScore}}</td>
+              <td>{{liveScoringObject.opponentScore}}</td>
+              <td>{{liveScoringObject.winningTeam}}</td>
+              <td>{{liveScoringObject.totalPoints}}</td>
+              <td>{{liveScoringObject.spread}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </v-ons-list-item>
+    </v-ons-list>
+
+    <v-ons-list>
+      <v-ons-list-header>Players Data</v-ons-list-header>
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+        <table class="table table-striped table-dark">
+          <thead style="text-align:center">
+            <tr>
+              <th>Player</th>
+              <th>PSU Score</th>
+              <th>Opponent Score</th>
+              <th>Winner</th>
+            </tr>
+          </thead>
+          <tbody style="text-align:center">
+            <tr v-for="(item,index) in firebaseUserData" :key="index">
+              <td>{{item.Player}}</td>
+              <td>{{item.PsuScore}}</td>
+              <td>{{item.OpponentScore}}</td>
+              <td>{{item.Winner}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </v-ons-list-item>
+    </v-ons-list>
+
+    <v-ons-list>
+      <v-ons-list-header>Deltas</v-ons-list-header>
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+        <table class="table table-striped table-dark">
+          <thead style="text-align:center">
+            <tr>
+              <th>Player</th>
+              <th>PSU</th>
+              <th>Opp</th>
+              <th>Total</th>
+              <th>Spread</th>
+            </tr>
+          </thead>
+          <tbody style="text-align:center">
+            <tr v-for="(item,index) in resultsArray" :key="index">
+              <td>{{item.player}}</td>
+              <td>{{item.psuDelta}}</td>
+              <td>{{item.opponentDelta}}</td>
+              <td>{{item.totalDelta}}</td>
+              <td>{{item.spreadDelta}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </v-ons-list-item>
+    </v-ons-list>
+
+    <v-ons-list>
+      <v-ons-list-header>Rankings</v-ons-list-header>
+      <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+        <table class="table table-striped table-dark">
+          <thead style="text-align:center">
+            <tr>
+              <th>Player</th>
+              <th>PSU</th>
+              <th>Opp</th>
+              <th>Total</th>
+              <th>Spread</th>
+            </tr>
+          </thead>
+          <tbody style="text-align:center">
+            <tr v-for="(item,index) in resultsArray" :key="index">
+              <td>{{item.player}}</td>
+              <td>{{item.psuRank}}</td>
+              <td>{{item.opponentRank}}</td>
+              <td>{{item.totalDeltaRank}}</td>
+              <td>{{item.spreadDeltaRank}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </v-ons-list-item>
+    </v-ons-list>
+
     
   </v-ons-page>
 </template>
@@ -91,7 +193,6 @@ export default {
         this.liveScoringObject.opponentScore = this.currentGameObject.HomeTeamScore
         this.liveScoringObject.winningTeam = this.liveScoringObject.psuScore > this.liveScoringObject.opponentScore ? this.currentGameObject.AwayTeam : this.currentGameObject.HomeTeam;
       }
-
       // ADD Live PSU Score With Live Opponent Score To Get Total
       this.liveScoringObject.totalPoints = ( this.liveScoringObject.psuScore + this.liveScoringObject.opponentScore );
       // Subtract Live PSU Score By Live Opponent Score To Get Spread
@@ -125,16 +226,16 @@ export default {
     calculateDeltas (player,psuScore,opponentScore,selectedWinner,totalPoints,spread) {
 
       // GET PSU Delta Live Scoring PSU Score Minue User Guess PSU Score
-      let psuDelta = Math.abs( this.liveScoringObject.psuScore - psuScore );
+      let psuDelta = Math.abs( psuScore - this.liveScoringObject.psuScore  );
 
       // GET Opponent Delta Live Scoring Opponent Score Minue User Guess Opponent Score
-      let opponentDelta = Math.abs( this.liveScoringObject.opponentScore - opponentScore );
+      let opponentDelta = Math.abs( opponentScore - this.liveScoringObject.opponentScore );
 
       // GET Total Live PSU Minus Live Opponent Score
-      let totalDelta =  ( psuDelta + opponentDelta );
+      let totalDelta = Math.abs( totalPoints - this.liveScoringObject.totalPoints );
 
       // GET Spread Live PSU Score Plus Live Opponent Score
-      let spreadDelta = Math.abs( psuDelta - opponentDelta );
+      let spreadDelta = Math.abs( spread  - this.liveScoringObject.spread );
       
       // Add To Results Array
       this.addToResultsArray(player,psuDelta,opponentDelta,selectedWinner,totalDelta,spreadDelta,psuScore,opponentScore);
@@ -233,7 +334,7 @@ export default {
           break;
           case 4:
             if (i > 0) {
-              if (this.resultsArray[i-1].spread === this.resultsArray[i].spread) {
+              if (this.resultsArray[i-1].spreadDelta === this.resultsArray[i].spreadDelta) {
                 this.resultsArray[i].spreadDeltaRank = this.resultsArray[i-1].spreadDeltaRank;
               } else {
                 this.resultsArray[i].spreadDeltaRank = i+1
@@ -296,7 +397,7 @@ export default {
         }
       }
 
-      // Sort all winners by avg rank
+      // Sort all loser by avg rank
       tempLoserObject.sort((a, b) => {
         let a1 = a.avgRank;
         let b1 = b.avgRank;
@@ -317,15 +418,15 @@ export default {
         {
           tempLoserObject[i].loseRank = ( winnerCount + 1 );
         }
+        winnerCount++;
       }
-      
       this.completeFinalList.push(tempWinnerObject)
       this.completeFinalList.push(tempLoserObject)
 
     },
     getBonusPoint () {
       for(let i =0; i < this.resultsArray.length;i++) {
-        if(this.resultsArray[i].psuScore === this.liveScoringObject.psuScore && this.resultsArray[i].opponentScore === this.liveScoringObject.opponentScore ) {
+        if(this.resultsArray[i].playerPsuScore === this.liveScoringObject.psuScore && this.resultsArray[i].playerOpponentScore === this.liveScoringObject.opponentScore ) {
           this.resultsArray[i].bonusPoint = 1.00;
         }
       }
@@ -401,12 +502,15 @@ export default {
           querySnapshot.forEach((doc)=>{
             if(!querySnapshot.empty) {
               let player = this.resultsArray.find(x => x.player === doc.data().Player);
-              db.collection(`${this.currentSeason}_Season_Rankings`).doc(`Player_${doc.data().Player}`).set({
-                Player: doc.data().Player,
-                Average:  ( player.avgRank + doc.data().Average ),
-                Points: (player.awardedPoints + doc.data().Points ),
-                Week: this.currentWeek
-              })
+              // Check if the Week in Firebase is not equal to current week if it is it means the averages were already added for currentWeek
+              if(doc.data().Week !== this.currentWeek) {
+                db.collection(`${this.currentSeason}_Season_Rankings`).doc(`Player_${doc.data().Player}`).set({
+                  Player: doc.data().Player,
+                  Average:  ( player.avgRank + doc.data().Average ),
+                  Points: (player.awardedPoints + doc.data().Points ),
+                  Week: this.currentWeek
+                })
+              }
             }
             else {
               for(let i =0;i<this.resultsArray.length;i++) {
