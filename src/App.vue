@@ -15,6 +15,7 @@ import Login from './views/Login.vue'
 import moment from 'moment'
 // Reference To Firebase Auth
 import firebase from 'firebase';
+import { log } from 'util';
 
 export default {
   name: 'App',
@@ -95,31 +96,40 @@ export default {
           this.$store.commit('psuSchedule/set', this.psuGames)
           }).then(() => {
             this.getCurrentGame()
-          }).then(() => {
+          })
+      },
+      // GET Current Game Object
+      getCurrentGame() 
+      { 
+        let psuGame;
+        fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${this.user.apiKey}`).then((response) => {
+          return response.json();
+        }).then((myJson) => { 
+          psuGame = myJson.find(x => x.HomeTeam === "PENNST" || x.AwayTeam === "PENNST")
+          // Commit Current Game Object To Store
+          this.$store.commit('currentGameObject/set', psuGame)
+        }).then(() => {
             this.opponents.push( 
               {
-                TeamName: this.currentGame.HomeTeam,
-                Value: this.currentGame.HomeTeam
+                TeamName: psuGame.HomeTeam,
+                Value: psuGame.HomeTeam
               },
               {
-                TeamName: this.currentGame.AwayTeam,
-                Value: this.currentGame.AwayTeam
+                TeamName: psuGame.AwayTeam,
+                Value: psuGame.AwayTeam
               }
             )
             this.$store.commit('currentGameOpponents/set', this.opponents)
           }).then(()=> {
             this.hasDataLoaded = true
           })
-      },
-      // GET Current Game Object
-      getCurrentGame() 
-      { 
-        // Find Current
+
+        /* Find Current
         let psuGame = this.psuGames.find(x => x.Week === this.currentWeek)
         // Save Current Game Object To Variable
         this.currentGame = psuGame;
         // Commit Current Game Object To Store
-        this.$store.commit('currentGameObject/set', psuGame)
+        this.$store.commit('currentGameObject/set', psuGame)*/
       }
     },
     created () {

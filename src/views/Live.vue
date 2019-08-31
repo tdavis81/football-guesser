@@ -153,6 +153,8 @@ export default {
       currentWeek: this.$store.state.currentWeekNumber.Week,
       currentSeason: this.$store.state.currentSeason.Season,
       currentGameObject: this.$store.state.currentGameObject.Game,
+      homeTeamScore: 0,
+      awayTeamScore: 0,
       firebaseUserData: [], 
       liveRankingResults: [],
       resultsArray: [],
@@ -222,14 +224,18 @@ export default {
       // If True Set PSU Score To Home Team Score & Opponent Score To Away Score & Calculate Winner 
       if (isPsuHomeTeam) 
       {
-        this.liveScoringObject.psuScore = this.currentGameObject.HomeTeamScore === null ? 0 : this.currentGameObject.HomeTeamScore;
-        this.liveScoringObject.opponentScore = this.currentGameObject.AwayTeamScore === null ? 0 : this.currentGameObject.AwayTeamScore;
+        //this.liveScoringObject.psuScore = this.currentGameObject.HomeTeamScore === null ? 0 : this.currentGameObject.HomeTeamScore;
+        this.liveScoringObject.psuScore = this.homeTeamScore;
+        //this.liveScoringObject.opponentScore = this.currentGameObject.AwayTeamScore === null ? 0 : this.currentGameObject.AwayTeamScore;
+        this.liveScoringObject.opponentScore = this.awayTeamScore;
         this.liveScoringObject.winningTeam = this.liveScoringObject.psuScore >= this.liveScoringObject.opponentScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
       } 
       else 
       {
-        this.liveScoringObject.psuScore = this.currentGameObject.AwayTeamScore
-        this.liveScoringObject.opponentScore = this.currentGameObject.HomeTeamScore
+        //this.liveScoringObject.psuScore = this.currentGameObject.AwayTeamScore
+        //this.liveScoringObject.opponentScore = this.currentGameObject.HomeTeamScore
+        this.liveScoringObject.psuScore = this.awayTeamScore;
+        this.liveScoringObject.opponentScore = this.homeTeamScore;
         this.liveScoringObject.winningTeam = this.liveScoringObject.psuScore > this.liveScoringObject.opponentScore ? this.currentGameObject.AwayTeam : this.currentGameObject.HomeTeam;
       }
       // ADD Live PSU Score With Live Opponent Score To Get Total
@@ -585,8 +591,16 @@ export default {
     // Check If Current Time Is Greater Than or Equal To Game Start Time If True Lock Save Btn & Inputs
     if ( currentTime >= gameStartDate ) 
     {
-      this.getPlayerData();
+      for(let i =0; i < 4; i++) {
+        this.homeTeamScore += this.currentGameObject.Periods[i].HomeScore === null ? 0 : this.currentGameObject.Periods[i].HomeScore;
+        this.awayTeamScore += this.currentGameObject.Periods[i].AwayScore === null ? 0 : this.currentGameObject.Periods[i].AwayScore;
+      }
+      setTimeout(() => {
+        this.getPlayerData();  
+      }, 1000);
+      
     }
+    
   }
 }
 
