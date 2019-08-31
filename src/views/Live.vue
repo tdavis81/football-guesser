@@ -16,7 +16,7 @@
           </thead>
           <tbody style="text-align:center">
             <tr v-for="(item,index) in resultsArray" :key="index">
-              <td>{{item.player}}</td>
+              <td>{{item.player.substring(0,4)}}</td>
               <td>{{item.avgRank}}</td>
               <td>{{item.finalNumRank}}</td>
               <td>{{parseFloat(item.awardedPoints).toFixed(2)}}</td>
@@ -66,7 +66,7 @@
           </thead>
           <tbody style="text-align:center">
             <tr v-for="(item,index) in firebaseUserData" :key="index">
-              <td>{{item.Player}}</td>
+              <td>{{item.Player.substring(0,4)}}</td>
               <td>{{item.PsuScore}}</td>
               <td>{{item.OpponentScore}}</td>
               <td>{{item.Winner}}</td>
@@ -91,7 +91,7 @@
           </thead>
           <tbody style="text-align:center">
             <tr v-for="(item,index) in resultsArray" :key="index">
-              <td>{{item.player}}</td>
+              <td>{{item.player.substring(0,4)}}</td>
               <td>{{item.psuDelta}}</td>
               <td>{{item.opponentDelta}}</td>
               <td>{{item.totalDelta}}</td>
@@ -117,7 +117,7 @@
           </thead>
           <tbody style="text-align:center">
             <tr v-for="(item,index) in resultsArray" :key="index">
-              <td>{{item.player}}</td>
+              <td>{{item.player.substring(0,4)}}</td>
               <td>{{item.psuRank}}</td>
               <td>{{item.opponentRank}}</td>
               <td>{{item.totalDeltaRank}}</td>
@@ -127,15 +127,24 @@
         </table>
       </v-ons-list-item>
     </v-ons-list>
-
+    <download-excel
+        class   = "exportStyle"
+        :data   = "resultsArray"
+        :fields = "json_fields"
+        worksheet = "Game"
+        name    = "HartranftCup Excel Export.xls">
     
+        Click To Export Data To Excel
+    </download-excel>
   </v-ons-page>
 </template>
 
 <script>
+import JsonExcel from 'vue-json-excel'
 import db from '@/db';
 // Reference to Moment JS 
 import moment from 'moment'
+import { log } from 'util';
 
 export default {
   name: "Live",
@@ -170,7 +179,38 @@ export default {
         total: 0,
         spread: 0,
       },
-      completeFinalList: []
+      completeFinalList: [],
+      json_fields: {
+        'Player': 'player',
+        'User Winner': 'selectedWinner',
+        'User PSU Score': 'playerPsuScore',
+        'User Opponent User Score': 'playerOpponentScore',
+
+        'Live Winner': 'liveScoringObject.winningTeam',
+        'Live PSU Score': 'liveScoringObject.psuScore',
+        'Live Opponent Score': 'liveScoringObject.opponentScore',
+        'Live Total Delta': 'liveScoringObject.totalPoints',
+        'Live Spread Delta': 'liveScoringObject.spread',
+        
+        'Calc PSU Score Delta':'psuDelta',
+        'Calc Opponent Score Delta':'opponentDelta',
+        'Calc Total Delta': 'totalDelta',
+        'Calc Spread Delta': 'spreadDelta',
+
+        'Calc PSU Score Rank': 'psuRank',
+        'Calc Opponent Score Rank': 'opponentRank',
+        'Calc Total Rank': 'totalDeltaRank',
+        'Calc Spread Rank': 'spreadDeltaRank',
+        'Calc Avg Rank': 'avgRank',
+        
+        'Calc Winner Only Rank': 'winnerRank',
+        'Calc Loser Only Rank': 'loseRank',
+        'Calc Bonus Pt': 'bonusPoint',
+        'Calc Game Rank': 'finalNumRank',
+        'Calc Pts': 'awardedPoints',
+        
+        
+      },
     }
   },
   methods: 
@@ -179,13 +219,12 @@ export default {
       
       // Check If PSU Is Home Team
       let isPsuHomeTeam = this.currentGameObject.HomeTeam === 'PENNST' ? true : false;
-      
       // If True Set PSU Score To Home Team Score & Opponent Score To Away Score & Calculate Winner 
       if (isPsuHomeTeam) 
       {
-        this.liveScoringObject.psuScore = this.currentGameObject.HomeTeamScore
-        this.liveScoringObject.opponentScore = this.currentGameObject.AwayTeamScore
-        this.liveScoringObject.winningTeam = this.liveScoringObject.psuScore > this.liveScoringObject.opponentScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
+        this.liveScoringObject.psuScore = this.currentGameObject.HomeTeamScore === null ? 0 : this.currentGameObject.HomeTeamScore;
+        this.liveScoringObject.opponentScore = this.currentGameObject.AwayTeamScore === null ? 0 : this.currentGameObject.AwayTeamScore;
+        this.liveScoringObject.winningTeam = this.liveScoringObject.psuScore >= this.liveScoringObject.opponentScore ? this.currentGameObject.HomeTeam : this.currentGameObject.AwayTeam;
       } 
       else 
       {
@@ -263,9 +302,9 @@ export default {
         loseRank: null,
         bonusPoint: 0,
         finalNumRank: null,
-        awardedPoints: 0
+        awardedPoints: 0,
+        liveScoringObject: this.liveScoringObject,
       })
-      
     },
     organizeRanks (num) {
       this.resultsArray.sort((a, b) => {
@@ -457,8 +496,7 @@ export default {
         }
         
       }
-
-
+      
     },
     sortRankings () {
       const NUM_OF_RANKING_CATEGORIES = 4;
@@ -482,8 +520,6 @@ export default {
       this.getBonusPoint();
       this.generateFinalRankings();
       this.calculateAwardedPoints();
-
-
     },
     startCalculations () {
 
@@ -496,7 +532,6 @@ export default {
     
     },
     saveToFireBase () {
-      
       if(this.currentGameObject.Status === 'Final' || this.currentGameObject.Status === 'F/OT' ) {
         db.collection(`${this.currentSeason}_Season_Rankings`).get().then(querySnapshot =>{
           querySnapshot.forEach((doc)=>{
@@ -552,8 +587,14 @@ export default {
     {
       this.getPlayerData();
     }
-   
   }
 }
 
 </script>
+
+<style>
+.exportStyle {
+  background-color: lightblue;
+  padding:10px
+}
+</style>

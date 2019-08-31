@@ -18,6 +18,7 @@
     "vue": "^2.6.10",
     "vue-burger-menu": "^2.0.1",
     "vue-firestore": "^0.3.16",
+    "vue-json-excel": "^0.2.98",
     "vue-onsenui": "^2.6.2",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1"

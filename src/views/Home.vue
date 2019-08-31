@@ -69,7 +69,6 @@
 </template>
 
 <script>
-
 // Reference To Firebase DB
 import db from '@/db';
 // Reference To Firebase Auth
@@ -78,6 +77,7 @@ import firebase from 'firebase';
 import swal from 'sweetalert';
 // Reference to Moment JS 
 import moment from 'moment'
+
 
 export default {
   data () 
@@ -92,12 +92,12 @@ export default {
       opponents:  this.$store.state.currentGameOpponents.Opponents,
       user: '',
       hasSubmitted:false,
-      hourStartAlert: '1 Hour until game time, please submit your picks.'
+      hourStartAlert: '1 Hour until game time, please submit your picks.',
+      
     }
   },
   methods: 
   {
-  
     // Save Scores to Firebase
     saveScores () 
     {     

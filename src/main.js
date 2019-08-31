@@ -14,7 +14,9 @@ import moment from 'moment'
 
 //import App from './App.vue'
 //import firebase from 'firebase'
-
+import JsonExcel from 'vue-json-excel'
+ 
+Vue.component('downloadExcel', JsonExcel)
 Vue.use(VueOnsen);
 Vue.use(Vuex);
 

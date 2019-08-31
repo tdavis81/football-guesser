@@ -54,6 +54,7 @@ export default {
       // GET Current Week Of Season
       getCurrentWeek () 
       {
+        // Check For Playoffs Here
         fetch(`${this.URL}/v3/cfb/scores/json/CurrentWeek?key=${this.user.apiKey}`).then((response) => {
           return response.text();
         }).then((myJson) => {
@@ -113,7 +114,7 @@ export default {
       // GET Current Game Object
       getCurrentGame() 
       { 
-        // Find Curre n
+        // Find Current
         let psuGame = this.psuGames.find(x => x.Week === this.currentWeek)
         // Save Current Game Object To Variable
         this.currentGame = psuGame;

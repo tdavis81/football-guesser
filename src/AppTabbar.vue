@@ -90,7 +90,7 @@ export default {
       }
     },
     title() {
-      return this.md ? 'Fanasty Football' : this.tabs[this.index].title || this.tabs[this.index].label;
+      return this.md ? 'Fantasy Football' : this.tabs[this.index].title || this.tabs[this.index].label;
     },
     swipeTheme() {
       return this.md && {
