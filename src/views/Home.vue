@@ -13,7 +13,7 @@
       <!-- Penn State Score Input box -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''" style="width:100%">
         <div class="left">
-          <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon style="color:blue" icon="md-home" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
           <v-ons-input :disabled="hasSubmitted"  float maxlength="20"
@@ -28,7 +28,7 @@
       <!-- Opponent Score Input Box -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon style="color:red" icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
           <v-ons-input :disabled="hasSubmitted" float maxlength="70"
@@ -43,7 +43,7 @@
       <!-- Choose Winner Dropdown -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''" id="winnerDropdown">
         <div class="left">
-          <v-ons-icon icon="md-store" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon style="color:green" icon="md-store" class="list-item__icon"></v-ons-icon>
         </div>
         <ons-list-item>
           <div class="center">
@@ -65,6 +65,19 @@
       </v-ons-list-item>
     
     </v-ons-list>
+    
+    <div v-if="dataLoaded">
+      <v-ons-list>
+        <v-ons-list-header>Player's who have submitted picks for Week {{currentWeek}}</v-ons-list-header>
+        <v-ons-list-item v-for="(item,index) in currentSubmitted" :key="index">
+          <div class="left">
+          <v-ons-icon style="color:green" icon="md-check-circle" class="list-item__icon"></v-ons-icon>
+        </div>
+          {{item.Player}}
+        </v-ons-list-item>
+      </v-ons-list>
+    </div>
+    
   </v-ons-page>
 </template>
 
@@ -85,7 +98,9 @@ export default {
     return {
       psuScore: '',
       opponentScore: '',
+      dataLoaded: false,
       selectedWinner: 'PENNST',
+      currentSubmitted: [],
       currentWeek: this.$store.state.currentWeekNumber.Week,
       currentSeason: this.$store.state.currentSeason.Season,
       currentGame: this.$store.state.currentGameObject.Game,
@@ -155,12 +170,24 @@ export default {
         }
       })
     },
+    getUnsubmittedPicks() {
+      db.collection(`${2019}_Season`).get().then(querySnapshot =>{
+        querySnapshot.forEach((doc)=>{
+          if (doc.data().Week === this.currentWeek) {
+            this.currentSubmitted.push(doc.data())
+          }
+        })
+      })
+      this.dataLoaded = true;      
+    }
   },
   created () 
   {
     this.user = firebase.auth().currentUser;
     this.checkIfGameStarted();
     this.getUserCurrentWeekScore()
+    this.getUnsubmittedPicks();
+    
   }
 }
 </script>

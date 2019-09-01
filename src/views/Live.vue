@@ -1,6 +1,9 @@
 <template>
   <v-ons-page>
-    <v-ons-button @click="refreshScores()" modifier="large" class="button-margin" style="background-color:green">Refresh Scores</v-ons-button>
+    <v-ons-button @click="refreshScores()" modifier="large" class="button-margin" style="background-color:green">
+      Refresh Scores
+      <v-ons-icon style="color:white" icon="md-refresh" class="list-item__icon"></v-ons-icon>
+    </v-ons-button>
     <!-- Create Simple Table That Organizes Live Rankings Of Users Based On Point Spread -->
     <v-ons-list>
       <v-ons-list-header>Live Tracker</v-ons-list-header>
