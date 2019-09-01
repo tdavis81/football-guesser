@@ -148,6 +148,7 @@ import swal from 'sweetalert';
 import db from '@/db';
 // Reference To Firebase Auth
 import firebase from 'firebase';
+import { log } from 'util';
 
 export default {
   name: "Rankings",
@@ -174,7 +175,10 @@ export default {
   },
   methods: {
     changeSelectedGame () {
-       
+      this.finalHomeScore = 0;
+      this.finalAwayScore = 0;
+      this.finalWinner = "";
+      
       // When User Changes Previous Scores DropDown Get There Data They Entered For That Week 
       for(let i =0; i< this.firebaseUserData.length;i++) { 
         
@@ -190,13 +194,18 @@ export default {
         }
       }
       // IF the game was completed get the Final Winner/Scores
-      for(let i =0; i< this.psuSchedule.length;i++) {
-        if(this.psuSchedule[i].Week === this.selectedWeek) {
-          this.finalHomeScore = this.psuSchedule[i].HomeTeamScore
-          this.finalAwayScore = this.psuSchedule[i].AwayTeamScore
-          this.finalWinner = this.psuSchedule[i].HomeTeamScore > this.psuSchedule[i].AwayTeamScore ? this.psuSchedule[i].HomeTeam: this.psuSchedule[i].AwayTeam
-          break;
+      const selectedGame = this.psuSchedule.find(x => x.Week === this.selectedWeek);
+      
+      if (selectedGame.Periods.length === 0) {
+        this.finalHomeScore = 0;
+        this.finalAwayScore = 0;
+        this.finalWinner = "Winner N/A";
+      } else {
+        for(let i =0; i < 4; i++) {
+          this.finalHomeScore += selectedGame.Periods[i].HomeScore === null ? 0 : selectedGame.Periods[i].HomeScore;
+          this.finalAwayScore += selectedGame.Periods[i].AwayScore === null ? 0 : selectedGame.Periods[i].AwayScore;
         }
+        this.finalWinner = selectedGame.HomeTeamScore > selectedGame.AwayTeamScore ? selectedGame.HomeTeam: selectedGame.AwayTeam
       }
       
     },

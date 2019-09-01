@@ -108,6 +108,7 @@ export default {
           psuGame = myJson.find(x => x.HomeTeam === "PENNST" || x.AwayTeam === "PENNST")
           // Commit Current Game Object To Store
           this.$store.commit('currentGameObject/set', psuGame)
+          
         }).then(() => {
             this.opponents.push( 
               {
@@ -138,20 +139,22 @@ export default {
          Once that API Call Completes GET the Current Season -> 
          Once that API Call Completes GET the Current Game Object 
       */
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          this.user.displayName = user.displayName;
+          this.user.email = user.email;
+          this.user.userId = user.uid;
+          this.user.apiKey = user.photoURL;
+          this.$store.commit('sessionUser/set', user)
+          this.sessionIsNotActive = false
+          this.loginCompleted = true
+          this.$store.commit('tabbar/set', 1)
+          this.getCurrentWeek()
+        } else {
+          this.sessionIsNotActive = true
+        }  
+      });
       
-      let user = firebase.auth().currentUser;
-      if (user) {
-        this.user.displayName = user.displayName;
-        this.user.email = user.email;
-        this.user.userId = user.uid;
-        this.user.apiKey = user.photoURL;
-        this.$store.commit('sessionUser/set', user)
-        this.sessionIsNotActive = false
-        this.loginCompleted = true
-        this.getCurrentWeek()
-      } else {
-        this.sessionIsNotActive = true
-      }
       
       
     },

@@ -107,7 +107,7 @@ export default {
       strict: true,
       namespaced: true,
       state: {
-        User: []
+        User: {}
       },
       mutations: {
         set(state, User) {

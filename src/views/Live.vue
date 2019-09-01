@@ -1,6 +1,6 @@
 <template>
   <v-ons-page>
-
+    <v-ons-button @click="refreshScores()" modifier="large" class="button-margin" style="background-color:green">Refresh Scores</v-ons-button>
     <!-- Create Simple Table That Organizes Live Rankings Of Users Based On Point Spread -->
     <v-ons-list>
       <v-ons-list-header>Live Tracker</v-ons-list-header>
@@ -217,6 +217,9 @@ export default {
   },
   methods: 
   {
+    refreshScores() {
+      location.reload();
+    },
     getLiveSpreads () {
       
       // Check If PSU Is Home Team
@@ -538,6 +541,7 @@ export default {
     
     },
     saveToFireBase () {
+      
       if(this.currentGameObject.Status === 'Final' || this.currentGameObject.Status === 'F/OT' ) {
         db.collection(`${this.currentSeason}_Season_Rankings`).get().then(querySnapshot =>{
           querySnapshot.forEach((doc)=>{
