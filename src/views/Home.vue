@@ -16,7 +16,7 @@
           <v-ons-icon style="color:blue" icon="md-home" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input :disabled="hasSubmitted"  float maxlength="20"
+          <v-ons-input @change="validateInputPSU()" :disabled="hasSubmitted"  float maxlength="3"
             placeholder="PENNST Score"
             v-model="psuScore"
             type="number"
@@ -31,7 +31,7 @@
           <v-ons-icon style="color:red" icon="md-face" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
-          <v-ons-input :disabled="hasSubmitted" float maxlength="70"
+          <v-ons-input @change="validateInputOpponent()" :disabled="hasSubmitted" float maxlength="70"
             placeholder="Opponent Score"
             v-model="opponentScore"
             type="number"
@@ -75,6 +75,12 @@
         </div>
           {{item.Player}}
         </v-ons-list-item>
+        <v-ons-list-item v-for="(item,index) in currentUnsubmitted" :key="index+25">
+          <div class="left">
+          <v-ons-icon style="color:red" icon="md-close" class="list-item__icon"></v-ons-icon>
+        </div>
+          {{item.Player}}
+        </v-ons-list-item>
       </v-ons-list>
     </div>
     
@@ -90,17 +96,19 @@ import firebase from 'firebase';
 import swal from 'sweetalert';
 // Reference to Moment JS 
 import moment from 'moment'
+import { log } from 'util';
 
 
 export default {
   data () 
   {
     return {
-      psuScore: '',
-      opponentScore: '',
+      psuScore: 0,
+      opponentScore: 0,
       dataLoaded: false,
       selectedWinner: 'PENNST',
       currentSubmitted: [],
+      currentUnsubmitted: [],
       currentWeek: this.$store.state.currentWeekNumber.Week,
       currentSeason: this.$store.state.currentSeason.Season,
       currentGame: this.$store.state.currentGameObject.Game,
@@ -113,32 +121,66 @@ export default {
   },
   methods: 
   {
+    validateInputPSU(inputNum) {
+      const reg = /^\d+$/;
+      if (this.psuScore.match(reg)) {
+        if (this.psuScore >= 250) {
+          this.psuScore = 0;
+        }
+      } else {
+        this.psuScore = 0;
+      }
+    },
+    validateInputOpponent(inputNum) {
+      const reg = /^\d+$/;
+      if (this.opponentScore.match(reg)) {
+        if (this.opponentScore >= 250) {
+          this.opponentScore = 0;
+        }
+      } else {
+        this.opponentScore = 0;
+      }
+    },
     // Save Scores to Firebase
     saveScores () 
     {     
-      // If Inputs are Null, Alert Message
-      if ( (this.psuScore === null || this.psuScore === "") ||  (this.opponentScore === null || this.opponentScore === "") ) 
+      // Get Current Time in format 2019-01-15T15:00:00
+      const currentTime = moment().format('YYYY-MM-DDTHH:mm:ss')
+      // Convert Current Game Objects DateTime To DateTime Of Game Start Time
+      const gameStartDate = moment(this.currentGame.DateTime).format('YYYY-MM-DDTHH:mm:ss')
+
+      // Check If Current Time Is Greater Than or Equal To Game Start Time If True Lock Save Btn & Inputs
+      if ( currentTime >= gameStartDate ) 
       {
-        swal("Error","Scores cannot be blank","error")
-      } 
-      else 
-      {
-        // Create Collection And Document If It Doesnt Exist Already 
-        db.collection(`${this.currentSeason}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
-          Week: this.currentGame.Week,
-          Season: this.currentSeason,
-          Winner: this.selectedWinner,
-          PsuScore: parseInt(this.psuScore),
-          OpponentScore: parseInt(this.opponentScore),
-          Player: this.user.displayName,
-          UserID: this.user.uid
-        }).then(() => {
-          swal("Saved","Picks have been saved!","success")
-        })
-        .catch(function(error) {
-          swal("Not Saved",error,"error")
-        });
+        swal("Error","Cannot submit/update score because the game has already started.","error")
+        // Hide/Lock Save button and inputs
+        this.hasSubmitted = true; 
+      } else {
+        // If Inputs are Null, Alert Message
+        if ( (this.psuScore === null || this.psuScore === "") ||  (this.opponentScore === null || this.opponentScore === "") ) 
+        {
+          swal("Error","Scores cannot be blank","error")
+        } 
+        else 
+        {
+          // Create Collection And Document If It Doesnt Exist Already 
+          db.collection(`${this.currentSeason}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
+            Week: this.currentGame.Week,
+            Season: this.currentSeason,
+            Winner: this.selectedWinner,
+            PsuScore: parseInt(this.psuScore),
+            OpponentScore: parseInt(this.opponentScore),
+            Player: this.user.displayName,
+            UserID: this.user.uid
+          }).then(() => {
+            swal("Saved","Picks have been saved!","success")
+          })
+          .catch(function(error) {
+            swal("Not Saved",error,"error")
+          });
+        }
       }
+
       
     },
     checkIfGameStarted () {
@@ -150,10 +192,9 @@ export default {
       // Check If Current Time Is Greater Than or Equal To Game Start Time If True Lock Save Btn & Inputs
       if ( currentTime >= gameStartDate ) 
       {
-        // Hide Save Button Once User Has Submitted There Picks
+        // Hide Save Button Once gave has started
         this.hasSubmitted = true; 
       }
-
     },
     getUserCurrentWeekScore () {
       db.collection(`${this.currentSeason}_Season`).get().then(querySnapshot =>{
@@ -177,6 +218,27 @@ export default {
             this.currentSubmitted.push(doc.data())
           }
         })
+      }).then(() => {
+        db.collection(`${2019}_Season`).get().then(querySnapshot =>{
+        querySnapshot.forEach((doc)=>{
+          if (this.currentWeek === 1) {
+            if (doc.data().Week === this.currentWeek) {
+              const found = this.currentSubmitted.find(x => x.Player === doc.data())
+              if (found === null) {
+                this.currentUnsubmitted.push(doc.data())
+              }
+            }
+          } else {
+            if (doc.data().Week === ( this.currentWeek -1)) {
+              const found = this.currentSubmitted.find(x => x.Player === doc.data().Player)
+              if (found === undefined) {
+                this.currentUnsubmitted.push(doc.data())
+              }
+            }
+          }
+          
+        })
+      })
       })
       this.dataLoaded = true;      
     }
@@ -187,6 +249,7 @@ export default {
     this.checkIfGameStarted();
     this.getUserCurrentWeekScore()
     this.getUnsubmittedPicks();
+    
     
   }
 }

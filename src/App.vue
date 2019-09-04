@@ -148,7 +148,7 @@ export default {
           this.$store.commit('sessionUser/set', user)
           this.sessionIsNotActive = false
           this.loginCompleted = true
-          this.$store.commit('tabbar/set', 1)
+          //this.$store.commit('tabbar/set', 1)
           this.getCurrentWeek()
         } else {
           this.sessionIsNotActive = true
