@@ -123,8 +123,12 @@ export default {
   {
     validateInputPSU(inputNum) {
       const reg = /^\d+$/;
+
       if (this.psuScore.match(reg)) {
         if (this.psuScore >= 250) {
+          this.psuScore = 0;
+        }
+        if (this.psuScore.length > 3) {
           this.psuScore = 0;
         }
       } else {
@@ -133,9 +137,15 @@ export default {
     },
     validateInputOpponent(inputNum) {
       const reg = /^\d+$/;
+      
       if (this.opponentScore.match(reg)) {
         if (this.opponentScore >= 250) {
           this.opponentScore = 0;
+        } else {
+        }
+        if (this.opponentScore.length > 3) {
+          this.opponentScore = 0;
+        } else {
         }
       } else {
         this.opponentScore = 0;
@@ -180,8 +190,6 @@ export default {
           });
         }
       }
-
-      
     },
     checkIfGameStarted () {
       // Get Current Time in format 2019-01-15T15:00:00
