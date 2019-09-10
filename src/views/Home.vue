@@ -184,10 +184,15 @@ export default {
             UserID: this.user.uid
           }).then(() => {
             swal("Saved","Picks have been saved!","success")
+            setTimeout(() => {
+              this.currentSubmitted = [];
+              this.currentUnsubmitted = [];
+              this.getUnsubmittedPicks();
+            }, 1000);
           })
           .catch(function(error) {
             swal("Not Saved",error,"error")
-          });
+          }); 
         }
       }
     },
