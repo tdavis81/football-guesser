@@ -224,7 +224,6 @@ export default {
       location.reload();
     },
     getLiveSpreads () {
-      
       // Check If PSU Is Home Team
       let isPsuHomeTeam = this.currentGameObject.HomeTeam === 'PENNST' ? true : false;
       // If True Set PSU Score To Home Team Score & Opponent Score To Away Score & Calculate Winner 
@@ -584,6 +583,7 @@ export default {
         })
       }).then(() => {
         this.startCalculations();
+        
       }).then(()=> {
         this.saveToFireBase()
       })

@@ -13,7 +13,7 @@
       <!-- Penn State Score Input box -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''" style="width:100%">
         <div class="left">
-          <v-ons-icon style="color:blue" icon="md-home" class="list-item__icon"></v-ons-icon>
+          <img style="width:40px" src="@/assets/psu2.png"/>
         </div>
         <label class="center">
           <v-ons-input @change="validateInputPSU()" :disabled="hasSubmitted"  float maxlength="3"
@@ -28,7 +28,7 @@
       <!-- Opponent Score Input Box -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon style="color:red" icon="md-face" class="list-item__icon"></v-ons-icon>
+           <img style="width:40px" src="@/assets/helmet.png"/>
         </div>
         <label class="center">
           <v-ons-input @change="validateInputOpponent()" :disabled="hasSubmitted" float maxlength="70"
@@ -43,7 +43,7 @@
       <!-- Choose Winner Dropdown -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''" id="winnerDropdown">
         <div class="left">
-          <v-ons-icon style="color:green" icon="md-store" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon style="color:blue" icon="ion-trophy" class="list-item__icon"></v-ons-icon>
         </div>
         <ons-list-item>
           <div class="center">
@@ -59,7 +59,7 @@
       <!-- Save Button -->
       <v-ons-list-item v-if="!hasSubmitted" :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-save" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon style="color:green" icon="md-save" class="list-item__icon"></v-ons-icon>
         </div>
          <v-ons-button  @click="saveScores()" modifier="large" class="button-margin" style="background-color:green">Save</v-ons-button>
       </v-ons-list-item>
@@ -103,8 +103,8 @@ export default {
   data () 
   {
     return {
-      psuScore: 0,
-      opponentScore: 0,
+      psuScore: '',
+      opponentScore: '',
       dataLoaded: false,
       selectedWinner: 'PENNST',
       currentSubmitted: [],
@@ -151,9 +151,25 @@ export default {
         this.opponentScore = 0;
       }
     },
+    alphanumeric(inputtxt)
+    {
+      const letterNumber = /^[0-9a-zA-Z]+$/;
+      try {
+        if(inputtxt.match(letterNumber)) 
+          return true;
+        return false;
+      } catch {
+        return false;
+      }
+    },
     // Save Scores to Firebase
     saveScores () 
     {     
+
+      console.log(this.psuScore);
+      console.log(this.opponentScore);
+      
+      
       // Get Current Time in format 2019-01-15T15:00:00
       const currentTime = moment().format('YYYY-MM-DDTHH:mm:ss')
       // Convert Current Game Objects DateTime To DateTime Of Game Start Time
@@ -169,32 +185,43 @@ export default {
         // If Inputs are Null, Alert Message
         if ( (this.psuScore === null || this.psuScore === "") ||  (this.opponentScore === null || this.opponentScore === "") ) 
         {
-          swal("Error","Scores cannot be blank","error")
+          swal("Error","Scores cannot be blank / Scores cannot contain letters","error")
         } 
         else 
         {
-          // Create Collection And Document If It Doesnt Exist Already 
-          db.collection(`${this.currentSeason}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
-            Week: this.currentGame.Week,
-            Season: this.currentSeason,
-            Winner: this.selectedWinner,
-            PsuScore: parseInt(this.psuScore),
-            OpponentScore: parseInt(this.opponentScore),
-            Player: this.user.displayName,
-            UserID: this.user.uid
-          }).then(() => {
-            swal("Saved","Picks have been saved!","success")
-            setTimeout(() => {
-              this.currentSubmitted = [];
-              this.currentUnsubmitted = [];
-              this.getUnsubmittedPicks();
-            }, 1000);
-          })
-          .catch(function(error) {
-            swal("Not Saved",error,"error")
-          }); 
+
+          if (this.alphanumeric(this.psuScore) && this.alphanumeric(this.opponentScore)) {
+            
+            // Create Collection And Document If It Doesnt Exist Already 
+            db.collection(`${this.currentSeason}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
+              Week: this.currentGame.Week,
+              Season: this.currentSeason,
+              Winner: this.selectedWinner,
+              PsuScore: parseInt(this.psuScore),
+              OpponentScore: parseInt(this.opponentScore),
+              Player: this.user.displayName,
+              UserID: this.user.uid
+            }).then(() => {
+              swal("Saved","Picks have been saved!","success")
+              setTimeout(() => {
+                this.currentSubmitted = [];
+                this.currentUnsubmitted = [];
+                this.getUnsubmittedPicks();
+              }, 1000);
+            })
+            .catch(function(error) {
+              swal("Not Saved",error,"error")
+            }); 
+            
+          } else {
+            this.psuScore = 0;
+            this.opponentScore = 0;
+            swal("Error","Scores can only contain numbers.","error")
+          }
+
+          
         }
-      }
+      } 
     },
     checkIfGameStarted () {
       // Get Current Time in format 2019-01-15T15:00:00
