@@ -19,7 +19,7 @@
               <td>{{rank.Player.substring(0,4)}}</td>
               <td>{{rank.Points}}</td>
               <td>{{rank.Standings}}</td>
-              <td>{{rank.Average}}</td>
+              <td>{{rank.Average.toFixed(2)}}</td>
             </tr>
           </tbody>
         </table>
@@ -42,9 +42,10 @@
       </ons-list-item>
 
       <!-- Session User Submitted Penn State Score -->
+      <v-ons-list-header>User Submitted Scores</v-ons-list-header>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
+          <img style="width:40px" src="@/assets/psu2.png"/>
         </div>
         <label class="center">
           <v-ons-input class="inputSize" id="psuScore" float maxlength="20"
@@ -60,7 +61,7 @@
       <!-- User Session Submitted Opponent -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+          <img style="width:40px" src="@/assets/helmet.png"/>
         </div>
         <label class="center">
           <v-ons-input class="inputSize" id="opponentScore" float maxlength="20"
@@ -76,7 +77,7 @@
       <!-- Session User Submitted Winner -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon icon="ion-trophy" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
           <v-ons-input class="inputSize" float maxlength="20"
@@ -90,9 +91,10 @@
       </v-ons-list-item>
 
       <!-- Live/Final Penn State Score -->
+      <v-ons-list-header>Final Scores</v-ons-list-header>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-home" class="list-item__icon"></v-ons-icon>
+          <img style="width:40px" src="@/assets/psu2.png"/>
         </div>
         <label class="center">
           <v-ons-input class="inputSize" float maxlength="20"
@@ -108,7 +110,7 @@
       <!-- Live/Final Opponent Score -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+          <img style="width:40px" src="@/assets/helmet.png"/>
         </div>
         <label class="center">
           <v-ons-input class="inputSize" float maxlength="20"
@@ -124,7 +126,7 @@
       <!-- Live/Final Winner -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-store" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon icon="ion-trophy" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
           <v-ons-input class="inputSize" float maxlength="20"
@@ -231,14 +233,20 @@ export default {
           })
         })
       }).then(() => {
+        /*
         this.firebaseUserRankings.sort((a, b) => {
           let a1 = a.Points;
           let b1 = b.Points;
           return (a1 > b1) ? -1 : (a1 < b1) ? 1 : 0;
+        }); */
+
+        this.firebaseUserRankings.sort(function (a, b) {
+          return b.Points - a.Points || a.Average - b.Average;
         });
+
         for(let i =0; i < this.firebaseUserRankings.length;i++) {
           if (i > 0) {
-            if (this.firebaseUserRankings[i-1].Points === this.firebaseUserRankings[i].Points) {
+            if (this.firebaseUserRankings[i-1].Points === this.firebaseUserRankings[i].Points && this.firebaseUserRankings[i-1].Average === this.firebaseUserRankings[i].Average ) {
               this.firebaseUserRankings[i].Standings = this.firebaseUserRankings[i-1].Standings;
             } else {
               this.firebaseUserRankings[i].Standings = i+1;

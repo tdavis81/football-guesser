@@ -28,11 +28,11 @@
       <!-- Opponent Score Input Box -->
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-           <img style="width:40px" src="@/assets/helmet.png"/>
+          <img style="width:40px" src="@/assets/helmet.png"/>
         </div>
         <label class="center">
           <v-ons-input @change="validateInputOpponent()" :disabled="hasSubmitted" float maxlength="70"
-            placeholder="Opponent Score"
+            :placeholder="opponentName + ' Score'"
             v-model="opponentScore"
             type="number"
           >
@@ -40,7 +40,7 @@
         </label>
       </v-ons-list-item>
 
-      <!-- Choose Winner Dropdown -->
+      <!-- Choose Winner Dropdown 
       <v-ons-list-item :modifier="md ? 'nodivider' : ''" id="winnerDropdown">
         <div class="left">
           <v-ons-icon style="color:blue" icon="ion-trophy" class="list-item__icon"></v-ons-icon>
@@ -54,7 +54,7 @@
             </v-ons-select>
           </div>
         </ons-list-item>
-      </v-ons-list-item>
+      </v-ons-list-item>-->
       
       <!-- Save Button -->
       <v-ons-list-item v-if="!hasSubmitted" :modifier="md ? 'nodivider' : ''">
@@ -107,6 +107,7 @@ export default {
       opponentScore: '',
       dataLoaded: false,
       selectedWinner: 'PENNST',
+      opponentName: '',
       currentSubmitted: [],
       currentUnsubmitted: [],
       currentWeek: this.$store.state.currentWeekNumber.Week,
@@ -165,10 +166,6 @@ export default {
     // Save Scores to Firebase
     saveScores () 
     {     
-
-      console.log(this.psuScore);
-      console.log(this.opponentScore);
-      
       
       // Get Current Time in format 2019-01-15T15:00:00
       const currentTime = moment().format('YYYY-MM-DDTHH:mm:ss')
@@ -196,7 +193,7 @@ export default {
             db.collection(`${this.currentSeason}_Season`).doc(`Week_${this.currentGame.Week}-Player_${this.user.displayName}`).set({
               Week: this.currentGame.Week,
               Season: this.currentSeason,
-              Winner: this.selectedWinner,
+              Winner: parseInt(this.psuScore) > parseInt(this.opponentScore) ? "PENNST" : this.opponentName,
               PsuScore: parseInt(this.psuScore),
               OpponentScore: parseInt(this.opponentScore),
               Player: this.user.displayName,
@@ -218,8 +215,6 @@ export default {
             this.opponentScore = 0;
             swal("Error","Scores can only contain numbers.","error")
           }
-
-          
         }
       } 
     },
@@ -285,6 +280,10 @@ export default {
   },
   created () 
   {
+    this.opponents.forEach(el => {
+      if (el !== 'PENNST') 
+        this.opponentName = el.Value;
+    }) 
     this.user = firebase.auth().currentUser;
     this.checkIfGameStarted();
     this.getUserCurrentWeekScore()
