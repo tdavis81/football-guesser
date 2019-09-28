@@ -488,8 +488,11 @@ export default {
         } else {
           this.resultsArray[i].finalNumRank = this.resultsArray[i].loseRank 
         }
-        
       }
+      this.resultsArray.sort(function (a, b) {
+        return a.finalNumRank - b.finalNumRank || a.avgRank - b.avgRank;
+      });
+      
     },
     calculateAwardedPoints () {
       let numOfWinners = 0;

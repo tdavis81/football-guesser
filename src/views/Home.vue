@@ -280,8 +280,9 @@ export default {
   },
   created () 
   {
+    
     this.opponents.forEach(el => {
-      if (el !== 'PENNST') 
+      if (el.Value !== 'PENNST') 
         this.opponentName = el.Value;
     }) 
     this.user = firebase.auth().currentUser;

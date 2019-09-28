@@ -102,28 +102,46 @@ export default {
       getCurrentGame() 
       { 
         let psuGame;
+        let isByeWeek = false;
+
         fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${this.user.apiKey}`).then((response) => {
           return response.json();
         }).then((myJson) => { 
           psuGame = myJson.find(x => x.HomeTeam === "PENNST" || x.AwayTeam === "PENNST")
-          // Commit Current Game Object To Store
-          this.$store.commit('currentGameObject/set', psuGame)
-          
+          if (psuGame === undefined) {
+            this.currentWeek +=1;
+            this.$store.commit('currentWeekNumber/set', this.currentWeek);
+            localStorage.setItem('currentGameWeek', this.currentWeek);
+            isByeWeek = true;
+          } else {
+            isByeWeek = false;
+          }
         }).then(() => {
-            this.opponents.push( 
-              {
-                TeamName: psuGame.HomeTeam,
-                Value: psuGame.HomeTeam
-              },
-              {
-                TeamName: psuGame.AwayTeam,
-                Value: psuGame.AwayTeam
-              }
-            )
-            this.$store.commit('currentGameOpponents/set', this.opponents)
+          
+          fetch(`${this.URL}/v3/cfb/scores/json/GamesByWeek/${this.currentSeason}/${this.currentWeek}?key=${this.user.apiKey}`).then((response) => {
+            return response.json();
+          }).then((myJson) => { 
+            psuGame = myJson.find(x => x.HomeTeam === "PENNST" || x.AwayTeam === "PENNST")
+            
+            // Commit Current Game Object To Store
+            this.$store.commit('currentGameObject/set', psuGame)
+          }).then(() => {
+              this.opponents.push( 
+                {
+                  TeamName: psuGame.HomeTeam,
+                  Value: psuGame.HomeTeam
+                },
+                {
+                  TeamName: psuGame.AwayTeam,
+                  Value: psuGame.AwayTeam
+                }
+              )
+              this.$store.commit('currentGameOpponents/set', this.opponents)
           }).then(()=> {
             this.hasDataLoaded = true
           })
+          
+        })
 
         /* Find Current
         let psuGame = this.psuGames.find(x => x.Week === this.currentWeek)
