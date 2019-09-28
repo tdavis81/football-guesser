@@ -1,3 +1,6 @@
+<style>
+
+</style>
 <template>
   <v-ons-page>
     
@@ -140,6 +143,21 @@
       </v-ons-list-item>
 
     </v-ons-list>
+
+    <v-ons-list>
+      <v-ons-list-header>Previous Game Data</v-ons-list-header>
+      <ons-list-item>
+        <div class="center">
+          <v-ons-select style="width: 100%;text-align:center" @change="setIframeLink()" v-model="selectedWeek2">
+            <option v-for="(item,index) in psuSchedule" :value="item.Week" :key="index">
+              {{ item.AwayTeam }} at {{ item.HomeTeam }} - Week {{item.Week}}
+            </option>
+          </v-ons-select>
+        </div>
+      </ons-list-item>
+
+      <iframe style="width:100%;height:300px" :src="link"></iframe>
+    </v-ons-list>
   </v-ons-page>
 </template>
 
@@ -156,6 +174,9 @@ export default {
   name: "Rankings",
   data() {
     return {
+      showIFrame: false,
+      spreadsheetLinks: [],
+      link: '',
       user: [],
       psuScore: '',
       opponentScore: '',
@@ -164,6 +185,7 @@ export default {
       finalAwayScore: '',
       finalWinner: '',
       selectedWeek: '', 
+      selectedWeek2: 1,
       firebaseUserData: [],
       firebaseUserRankings: [],
       currentWeek: this.$store.state.currentWeekNumber.Week,
@@ -176,6 +198,24 @@ export default {
     };
   },
   methods: {
+    setIframeLink() {
+      const doc = this.spreadsheetLinks.find(x=>x.Week === this.selectedWeek2);
+      if (doc !== undefined && doc !== null) {
+        this.link = `${doc.Link}&amp;single=true&amp;widget=true&amp;headers=false`;
+      }
+    },
+    getLinks() {
+      db.collection(`${this.currentSeason}_Seaon_GameResults_Docs`).get().then(querySnapshot =>{
+        querySnapshot.forEach((doc)=>{
+          // If Players Datas week == current week add to playersdata array
+          this.spreadsheetLinks.push(doc.data())
+        })
+        const doc = this.spreadsheetLinks.find(x=>x.Week === this.selectedWeek2);
+        if (doc !== undefined && doc !== null) {
+          this.link = `${doc.Link}&amp;single=true&amp;widget=true&amp;headers=false`;
+        }
+      })
+    },
     changeSelectedGame () {
       this.finalHomeScore = 0;
       this.finalAwayScore = 0;
@@ -264,6 +304,7 @@ export default {
       this.user = user;
       this.getFirebasePlayerRankings();
       this.getPlayerData();
+      this.getLinks();
     });
   }
 }

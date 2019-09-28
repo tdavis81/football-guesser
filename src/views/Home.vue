@@ -280,7 +280,6 @@ export default {
   },
   created () 
   {
-    
     this.opponents.forEach(el => {
       if (el.Value !== 'PENNST') 
         this.opponentName = el.Value;

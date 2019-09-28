@@ -221,7 +221,7 @@ export default {
   methods: 
   {
     refreshScores() {
-      location.reload();
+      location.reload(true);
     },
     getLiveSpreads () {
       // Check If PSU Is Home Team
