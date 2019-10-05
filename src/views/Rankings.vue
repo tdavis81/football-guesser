@@ -29,10 +29,10 @@
       </v-ons-list-item>
     </v-ons-list>
 
-
+    <!--
     <v-ons-list>
 
-      <!-- Previous Scores Section -->
+       Previous Scores Section 
       <v-ons-list-header>Previous Scores</v-ons-list-header>
       <ons-list-item>
         <div class="center">
@@ -44,7 +44,7 @@
         </div>
       </ons-list-item>
 
-      <!-- Session User Submitted Penn State Score -->
+       Session User Submitted Penn State Score
       <v-ons-list-header>User Submitted Scores</v-ons-list-header>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
@@ -61,7 +61,7 @@
         </label>
       </v-ons-list-item>
 
-      <!-- User Session Submitted Opponent -->
+       User Session Submitted Opponent
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <img style="width:40px" src="@/assets/helmet.png"/>
@@ -77,7 +77,7 @@
         </label>
       </v-ons-list-item>
 
-      <!-- Session User Submitted Winner -->
+       Session User Submitted Winner
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="ion-trophy" class="list-item__icon"></v-ons-icon>
@@ -93,7 +93,7 @@
         </label>
       </v-ons-list-item>
 
-      <!-- Live/Final Penn State Score -->
+      Live/Final Penn State Score 
       <v-ons-list-header>Final Scores</v-ons-list-header>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
@@ -110,7 +110,7 @@
         </label>
       </v-ons-list-item>
 
-      <!-- Live/Final Opponent Score -->
+      Live/Final Opponent Score 
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <img style="width:40px" src="@/assets/helmet.png"/>
@@ -126,7 +126,7 @@
         </label>
       </v-ons-list-item>
 
-      <!-- Live/Final Winner -->
+      Live/Final Winner 
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
           <v-ons-icon icon="ion-trophy" class="list-item__icon"></v-ons-icon>
@@ -143,7 +143,7 @@
       </v-ons-list-item>
 
     </v-ons-list>
-
+    -->
     <v-ons-list>
       <v-ons-list-header>Previous Game Data</v-ons-list-header>
       <ons-list-item>
