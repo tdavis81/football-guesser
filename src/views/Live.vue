@@ -56,7 +56,7 @@
     </v-ons-list>
 
     <v-ons-list>
-      <v-ons-list-header>Players Data</v-ons-list-header>
+      <v-ons-list-header>Player Scores</v-ons-list-header>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <table class="table table-striped table-dark">
           <thead style="text-align:center">
@@ -556,9 +556,10 @@ export default {
               if(doc.data().Week !== this.currentWeek) {
                 db.collection(`${this.currentSeason}_Season_Rankings`).doc(`Player_${doc.data().Player}`).set({
                   Player: doc.data().Player,
-                  Average:  ( player.avgRank + doc.data().Average ),
+                  Average: ( player.finalNumRank + doc.data().Average ),//( player.avgRank + doc.data().Average ),
                   Points: (player.awardedPoints + doc.data().Points ),
-                  Week: this.currentWeek
+                  Week: this.currentWeek,
+                  GameCounter: doc.data().GameCounter +1 
                 })
               }
             }

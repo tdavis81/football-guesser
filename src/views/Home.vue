@@ -58,12 +58,16 @@
       
       <!-- Save Button -->
       <v-ons-list-item v-if="!hasSubmitted" :modifier="md ? 'nodivider' : ''">
-        <div class="left">
+        <!--<div class="left">
           <v-ons-icon style="color:green" icon="md-save" class="list-item__icon"></v-ons-icon>
-        </div>
+        </div>-->
          <v-ons-button  @click="saveScores()" modifier="large" class="button-margin" style="background-color:green">Save</v-ons-button>
       </v-ons-list-item>
-    
+      <div v-if="!hasSubmitted">
+        <br/>
+        <p style="margin-left:25px"> <b>Game Start Time : </b> <span style="font-style:italic">{{gameStartTime}}</span></p>
+        <p style="margin-left:25px"> <b>Countdown : </b><span style="font-style:italic">{{gameCountDown}}</span></p><!--Math.trunc()-->
+      </div>
     </v-ons-list>
     
     <div v-if="dataLoaded">
@@ -103,6 +107,10 @@ export default {
   data () 
   {
     return {
+      gameCountDown: '',
+      countDownDays: 0,
+      countDownHours: 0,
+      countDownMins: 0,
       psuScore: '',
       opponentScore: '',
       dataLoaded: false,
@@ -288,8 +296,24 @@ export default {
     this.checkIfGameStarted();
     this.getUserCurrentWeekScore()
     this.getUnsubmittedPicks();
-    
-    
+    this.gameStartTime = moment(this.currentGame.DateTime).calendar();
+
+    const now = moment(new Date()); //todays date
+    const end = moment(this.currentGame.DateTime)
+    //const duration = moment.duration(moment(this.currentGame.DateTime).diff(now));
+    //this.countDownDays = duration.asDays();
+    //this.countDownHours = duration.asHours();
+    //this.countDownMins = duration.minutes();
+
+    const diff = moment.duration(moment(end).diff(moment(now)));
+    const days = parseInt(diff.asDays()); //84
+    let hours = parseInt(diff.asHours()); //2039 hours, but it gives total hours in given miliseconds which is not expacted.
+    hours = hours - days*24;  // 23 hours
+    let minutes = parseInt(diff.asMinutes()); //122360 minutes,but it gives total minutes in given miliseconds which is not expacted.
+    minutes = minutes - (days*24*60 + hours*60); //20 minutes.
+
+    this.gameCountDown = days + 'days ' + hours + 'hours ' + minutes + 'mins';
+
   }
 }
 </script>

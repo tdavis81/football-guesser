@@ -6,7 +6,7 @@
       <v-ons-list-header>User Information</v-ons-list-header>
       <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon icon="md-email" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
           <v-ons-input float maxlength="70"
@@ -21,7 +21,7 @@
 
        <v-ons-list-item :modifier="md ? 'nodivider' : ''">
         <div class="left">
-          <v-ons-icon icon="md-face" class="list-item__icon"></v-ons-icon>
+          <v-ons-icon icon="md-account-box" class="list-item__icon"></v-ons-icon>
         </div>
         <label class="center">
           <v-ons-input float maxlength="70"

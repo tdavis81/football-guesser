@@ -1,7 +1,7 @@
 <template>
   <v-ons-page modifier="white">
     <div class="profile-pic">
-      <img src="../assets/jopa.png">
+      <img src="../assets/psu2.png">
     </div>
 
     <v-ons-list-title>Links</v-ons-list-title>

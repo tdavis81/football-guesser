@@ -26,6 +26,7 @@
             </tr>
           </tbody>
         </table>
+        <p v-if="isRankingsUpdated" style="font-style:italic">Rankings Updated As Of: {{currentDate}}</p>
       </v-ons-list-item>
     </v-ons-list>
 
@@ -169,11 +170,14 @@ import db from '@/db';
 // Reference To Firebase Auth
 import firebase from 'firebase';
 import { log } from 'util';
+import moment from 'moment'
 
 export default {
   name: "Rankings",
   data() {
     return {
+      currentDate: moment().calendar(),
+      isRankingsUpdated: true,
       showIFrame: false,
       spreadsheetLinks: [],
       link: '',
@@ -268,9 +272,12 @@ export default {
             Player: doc.data().Player,
             Week: doc.data().Week,
             Points: doc.data().Points,
-            Average: doc.data().Average / doc.data().Week,
+            Average: doc.data().Average / (doc.data().GameCounter),
             Standings: null
           })
+          if (doc.data().Week !== this.currentWeek) {
+            this.isRankingsUpdated = false;
+          }
         })
       }).then(() => {
         /*
